@@ -36,6 +36,7 @@ grails.project.dependency.resolution = {
             export = false
         }
         test(":spock:latest.integration")
+        test(":codenarc:latest.integration")
         compile("grails.crm:crm-core:latest.integration")
         runtime(":hibernate:$grailsVersion") {
             export = false
@@ -43,3 +44,18 @@ grails.project.dependency.resolution = {
     }
 }
 //grails.plugin.location.'crm-core'="../crm-core"
+
+codenarc {
+    reports = {
+        CrmXmlReport('xml') {
+            outputFile = 'CodeNarcReport.xml'
+            title = 'Grails CRM CodeNarc Report'
+        }
+        CrmHtmlReport('html') {
+            outputFile = 'target/test-reports/CodeNarcReport.html'
+            title = 'Grails CRM CodeNarc Report'
+        }
+    }
+    processTestUnit = false
+    processTestIntegration = false
+}
