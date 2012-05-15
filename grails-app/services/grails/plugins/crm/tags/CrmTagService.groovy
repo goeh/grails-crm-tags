@@ -30,7 +30,7 @@ class CrmTagService {
     def createTag(params) {
         def tag = CrmTag.createCriteria().get {
             eq('name', params.name)
-            eq('tenantId', TenantUtils.getTenant())
+            eq('tenantId', params.tenantId ?: TenantUtils.getTenant())
             cache true
         }
         if (!tag) {
@@ -41,7 +41,7 @@ class CrmTagService {
 
     def deleteTag(String name) {
         def tag = CrmTag.createCriteria().get {
-            eq('name', params.name)
+            eq('name', name)
             eq('tenantId', TenantUtils.getTenant())
         }
         if (tag) {
@@ -75,7 +75,8 @@ class CrmTagService {
             tagName = className
         }
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), TenantUtils.getTenant())
+        def tenant = instance.hasProperty('tenantId') ? instance.tenantId :  TenantUtils.getTenant()
+        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
         if (!tag) {
             if(tagName == instance.class.name) {
                 tag = createTag([name:tagName, multiple:true])
@@ -110,7 +111,8 @@ class CrmTagService {
             tagName = className
         }
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), TenantUtils.getTenant())
+        def tenant = instance.hasProperty('tenantId') ? instance.tenantId :  TenantUtils.getTenant()
+        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
         if (!tag) throw new CrmException("tag.not.found.error", [tagName])
         def ref = crmCoreService.getReferenceIdentifier(instance)
         def links = CrmTagLink.createCriteria().list {
@@ -127,7 +129,8 @@ class CrmTagService {
 
     def deleteTag(Object instance, String tagName) {
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), TenantUtils.getTenant())
+        def tenant = instance.hasProperty('tenantId') ? instance.tenantId :  TenantUtils.getTenant()
+        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
         if (!tag) throw new CrmException("tag.not.found.error", [tagName])
         def ref = crmCoreService.getReferenceIdentifier(instance)
         def rval = []
@@ -153,7 +156,8 @@ class CrmTagService {
             tagName = className
         }
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), TenantUtils.getTenant())
+        def tenant = instance.hasProperty('tenantId') ? instance.tenantId :  TenantUtils.getTenant()
+        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
         if (!tag) throw new CrmException("tag.not.found.error", [tagName])
         def ref = crmCoreService.getReferenceIdentifier(instance)
         def rval = []
