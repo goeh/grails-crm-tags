@@ -21,7 +21,7 @@ class CrmTagsGrailsPlugin {
     // the plugin dependency group
     def groupId = "grails.crm"
     // the plugin version
-    def version = "0.9.1"
+    def version = "0.9.2"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "2.0 > *"
     // the other plugins this plugin depends on
@@ -41,7 +41,7 @@ class CrmTagsGrailsPlugin {
     def license = "APACHE"
 
     // Location of the plugin's issue tracker.
-    def issueManagement = [system: "GITHUB", url: "https://github.com/goeh/grails-crm-tags/issues"]
+    def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-tags/issues"]
 
     // Online location of the plugin's browseable source code.
     def scm = [url: "https://github.com/goeh/grails-crm-tags"]
@@ -52,16 +52,6 @@ class CrmTagsGrailsPlugin {
             def taggableProperty = getTaggableProperty(domainClass)
             if (taggableProperty) {
                 addDomainMethods(domainClass.clazz.metaClass, crmTagService)
-            }
-        }
-    }
-
-    def doWithApplicationContext = { applicationContext ->
-        def crmTagService = applicationContext.getBean("crmTagService")
-        for (domainClass in application.domainClasses) {
-            def taggableProperty = getTaggableProperty(domainClass)
-            if (taggableProperty) {
-                crmTagService.createTag(name: domainClass.clazz.name, multiple: true, description: "Generic tag for " + GrailsClassUtils.getNaturalName(domainClass.clazz.simpleName))
             }
         }
     }
@@ -86,6 +76,9 @@ class CrmTagsGrailsPlugin {
         }
         mc.getTagValue = { String tagName ->
             crmTagService.getTagValue(delegate, tagName)
+        }
+        mc.isTagged = { String tagName ->
+            crmTagService.isTagged(delegate, tagName)
         }
         mc.deleteTagValue = { Object[] args ->
             crmTagService.deleteTagValue(delegate, args)

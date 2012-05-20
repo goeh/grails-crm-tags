@@ -127,6 +127,12 @@ class CrmTagService {
         return null
     }
 
+    boolean isTagged(Object instance, String tagName) {
+        def className = instance.class.name
+        def result = getTagValue(instance, className)
+        return (result instanceof Collection) ? result.contains(tagName) : (result == tagName)
+    }
+
     def deleteTag(Object instance, String tagName) {
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId :  TenantUtils.getTenant()
@@ -195,15 +201,18 @@ class CrmTagService {
             if (params.max) paginateParams.max = Integer.valueOf(params.max.toString())
         }
 
-        tagValue = tagValue.toString().split(',').collect {it.trim().toLowerCase()}
+        if(tagValue) {
+            tagValue = tagValue.toString().split(',').collect {it.trim().toLowerCase()}
+        }
         def tenant = TenantUtils.getTenant()
         def tag = CrmTag.findByNameAndTenantId(tagName.toString(), tenant, [cache: true])
         def result
         if (tag) {
             def domainName = GrailsNameUtils.getPropertyName(clazz)
-            def totalCount = clazz.findAll("from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id and lower(link.value) in (:value))",
+            def tagValueAddOn = tagValue ? "and lower(link.value) in (:value)" : ""
+            def totalCount = clazz.findAll("from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn)",
                     [tenant: tenant, tag: tag, value: tagValue]).size()
-            result = new PagedResultList(clazz.findAll("from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id and lower(link.value) in (:value)) $order",
+            result = new PagedResultList(clazz.findAll("from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn) $order",
                     [tenant: tenant, tag: tag, value: tagValue], paginateParams), totalCount)
         } else {
             result = new PagedResultList([])
