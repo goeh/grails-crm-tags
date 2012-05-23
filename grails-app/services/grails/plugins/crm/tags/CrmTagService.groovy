@@ -113,7 +113,7 @@ class CrmTagService {
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId :  TenantUtils.getTenant()
         def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
-        if (!tag) throw new CrmException("tag.not.found.error", [tagName])
+        if (!tag) return null
         def ref = crmCoreService.getReferenceIdentifier(instance)
         def links = CrmTagLink.createCriteria().list {
             eq('tag', tag)

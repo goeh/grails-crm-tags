@@ -89,11 +89,11 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         testEntity.getTagValue("Score") == expected
         where:
         score | expected
-        1 | "1"
-        2 | "2"
-        3 | "3"
-        4 | "4"
-        5 | "5"
+        1     | "1"
+        2     | "2"
+        3     | "3"
+        4     | "4"
+        5     | "5"
     }
 
     def "invalid tag options"() {
@@ -115,5 +115,34 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         testEntity.setTagValue("Score", 6)
         then:
         thrown(CrmException)
+    }
+
+    def "get class tags"() {
+        given:
+        crmTagService.createTag(name: TestEntity.name, multiple: true)
+        def m = new TestEntity(name: "A").save(failOnError: true)
+
+        expect:
+        m.getClassTags().isEmpty()
+
+        when:
+        m.setTagValue("foo")
+
+        then:
+        m.getClassTags().size() == 1
+
+        when:
+        m.setTagValue("bar")
+        m.setTagValue("baz")
+
+        then:
+        m.classTags.size() == 3
+
+        when:
+        m.deleteTagValue("baz")
+
+        then:
+        m.classTags.size() == 2
+        m.classTags.sort() == ["bar", "foo"]
     }
 }

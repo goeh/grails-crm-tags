@@ -21,7 +21,7 @@ class CrmTagsGrailsPlugin {
     // the plugin dependency group
     def groupId = "grails.crm"
     // the plugin version
-    def version = "0.9.2"
+    def version = "0.9.3"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "2.0 > *"
     // the other plugins this plugin depends on
@@ -45,6 +45,8 @@ class CrmTagsGrailsPlugin {
 
     // Online location of the plugin's browseable source code.
     def scm = [url: "https://github.com/goeh/grails-crm-tags"]
+
+    def observe = ["domain"]
 
     def doWithDynamicMethods = { ctx ->
         def crmTagService = ctx.getBean("crmTagService")
@@ -76,6 +78,13 @@ class CrmTagsGrailsPlugin {
         }
         mc.getTagValue = { String tagName ->
             crmTagService.getTagValue(delegate, tagName)
+        }
+        mc.getClassTags = { ->
+            def v = crmTagService.getTagValue(delegate, null) ?: []
+            if(! (v instanceof Collection)) {
+                v = [v]
+            }
+            return v
         }
         mc.isTagged = { String tagName ->
             crmTagService.isTagged(delegate, tagName)

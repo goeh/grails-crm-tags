@@ -32,7 +32,7 @@
                 while(i--) {
                     arr[i] = data.results[i]
                 }
-                return arr;
+                return {labels:arr, values:arr};
             });
 
             $("#tags form").submit(function(event) {
