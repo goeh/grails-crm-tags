@@ -95,9 +95,10 @@ class CrmTagController {
 
     def autocomplete() {
         params.offset = params.offset ? params.int('offset') : 0
+        if(params.limit && !params.max) params.max = params.limit
         params.max = Math.min(params.max ? params.int('max') : 25, 100)
         def tenant = TenantUtils.tenant
-        def result = CrmTagLink.createCriteria().list([offset: params.offset, max: params.max, sort: 'value', order: 'asc']) {
+        def result = CrmTagLink.createCriteria().list([offset: params.offset, max: params.max]) {
             projections {
                 distinct('value')
             }
@@ -108,10 +109,9 @@ class CrmTagController {
             if (params.q) {
                 ilike('value', this.wildcard(params.q))
             }
-        }
-        def json = [q: params.q, timestamp: System.currentTimeMillis(), results: result]
-        WebUtils.shortCache(response)
-        render json as JSON
+        }.sort()
+        WebUtils.noCache(response)
+        render result as JSON
     }
 
     private String wildcard(String q) {

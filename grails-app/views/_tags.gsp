@@ -1,4 +1,5 @@
 <g:content tag="head">
+    <r:require module="autocomplete"/>
     <r:script>
         function refreshTags(newValue) {
             $.get("${createLink(controller: 'crmTag', action: 'list', params: [id: bean.ident(), entity: bean.class.name])}", function(data) {
@@ -26,13 +27,20 @@
         }
 
         jQuery(document).ready(function() {
-
+/*
             $("#tags input[name=value]").crmAutocomplete("${createLink(controller: 'crmTag', action: 'autocomplete', params: [entity: bean.class.name, id: bean.ident()])}", function(data) {
                 var arr = [],i = data.results.length;
                 while(i--) {
                     arr[i] = data.results[i]
                 }
                 return {labels:arr, values:arr};
+            });
+*/
+            $("#tags input[name='value']").autocomplete("${createLink(controller: 'crmTag', action: 'autocomplete')}", {
+                remoteDataType: 'json',
+                preventDefaultReturn: true,
+                selectFirst: true,
+                extraParams: {entity: "${bean.class.name}", id: "${bean.ident()}"}
             });
 
             $("#tags form").submit(function(event) {
@@ -41,7 +49,7 @@
                 var value = input.val();
                 event.stopPropagation();
                 $.post("${createLink(controller: 'crmTag', action: 'save')}", form.serialize(), function(data) {
-                    $("input[name=value]", form).val("");
+                    $("input[name='value']", form).val("");
                     refreshTags(data.value);
                 }, "json");
                 return false;
@@ -56,7 +64,7 @@
                 var form = $("#tags form");
                 var query = form.serialize();
                 $.post("${createLink(controller: 'crmTag', action: 'find')}", query, function(data) {
-                    window.location = "${createLink(action: 'list')}/" + data.selection;
+                    window.location = "${select.createLink(action: 'list')}" + data.selection;
                 });
             });
             // Add an AJAX delete request to the delete button/icon.
@@ -74,7 +82,7 @@
                             span.addClass("pulse");
                         }
                     });
-                    $("input[name=value]", form).val("");
+                    $("input[name='value']", form).val("");
                     setTimeout("refreshTags(null)", 2000);
                 }, "json");
             });

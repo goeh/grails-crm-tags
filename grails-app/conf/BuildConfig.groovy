@@ -19,7 +19,7 @@ grails.project.dependency.resolution = {
         // from public Maven repositories
         //mavenCentral()
         //mavenLocal()
-        //mavenRepo "http://labs.technipelago.se/repo/plugins-releases-local/"
+        mavenRepo "http://labs.technipelago.se/repo/plugins-releases-local/"
         mavenRepo "http://labs.technipelago.se/repo/crm-releases-local/"
         //mavenRepo "http://snapshots.repository.codehaus.org"
         //mavenRepo "http://repository.codehaus.org"
@@ -34,7 +34,7 @@ grails.project.dependency.resolution = {
 
     plugins {
         build(":tomcat:$grailsVersion",
-              ":release:2.0.0") {
+              ":release:2.0.3") {
             export = false
         }
         test(":spock:latest.integration")
@@ -43,6 +43,8 @@ grails.project.dependency.resolution = {
         runtime(":hibernate:$grailsVersion") {
             export = false
         }
+        runtime ":resources:1.1.6"
+        runtime ":selection:latest.integration"
     }
 }
 //grails.plugin.location.'crm-core'="../crm-core"
