@@ -39,13 +39,17 @@ class CrmTagService {
         return tag
     }
 
-    def deleteTag(String name) {
+    def deleteTag(String name, Long tenantId = null) {
+        if(! tenantId) {
+            tenantId = TenantUtils.getTenant()
+        }
         def tag = CrmTag.createCriteria().get {
             eq('name', name)
-            eq('tenantId', TenantUtils.getTenant())
+            eq('tenantId', tenantId)
         }
         if (tag) {
-            tag.delete()
+            CrmTagLink.findAllByTag(tag)*.delete()
+            tag.delete(flush:true)
         } else {
             throw new IllegalArgumentException("Tag not found: $name")
         }
