@@ -27,15 +27,7 @@
         }
 
         jQuery(document).ready(function() {
-/*
-            $("#tags input[name=value]").crmAutocomplete("${createLink(controller: 'crmTag', action: 'autocomplete', params: [entity: bean.class.name, id: bean.ident()])}", function(data) {
-                var arr = [],i = data.results.length;
-                while(i--) {
-                    arr[i] = data.results[i]
-                }
-                return {labels:arr, values:arr};
-            });
-*/
+
             $("#tags input[name='value']").autocomplete("${createLink(controller: 'crmTag', action: 'autocomplete')}", {
                 remoteDataType: 'json',
                 preventDefaultReturn: true,
@@ -101,14 +93,21 @@
 
     <crm:hasPermission permission="crmTag:save">
         <g:form class="clearfix hide" controller="crmTag" action="save" style="margin-top: 9px;">
-            <input type="hidden" name="entity" value="${bean.class.name}"/>
-            <input type="hidden" name="id" value="${bean.id}"/>
-            <input type="text" name="value" class="span2" style="margin-left:15px;" autocomplete="off" data-provide="typeahead"/>
+            <div class="row-fluid">
+                <input type="hidden" name="entity" value="${bean.class.name}"/>
+                <input type="hidden" name="id" value="${bean.id}"/>
+                <input type="text" name="value" class="span10" style="margin-left:15px;" autocomplete="off"
+                       data-provide="typeahead"/>
 
-            <div style="margin-left:15px;">
-                <a href="#" class="btn btn-mini btn-primary tag-save"><i class="icon-ok icon-white"></i> <g:message code="crmTag.button.add.label" default="Add"/></a>
-                <a href="#" class="btn btn-mini tag-find"><i class="icon-search"></i> <g:message code="crmTag.button.find.label" default="Find"/></a>
-                <a href="#" class="btn btn-mini btn-danger tag-delete"><i class="icon-trash icon-white"></i> <g:message code="crmTag.button.delete.label" default="Delete"/></a>
+                <div style="margin-left:15px;">
+                    <a href="#" class="btn btn-mini btn-primary tag-save"><i class="icon-ok icon-white"></i> <g:message
+                            code="crmTag.button.add.label" default="Add"/></a>
+                    <a href="#" class="btn btn-mini tag-find"><i class="icon-search"></i> <g:message
+                            code="crmTag.button.find.label" default="Find"/></a>
+                    <a href="#" class="btn btn-mini btn-danger tag-delete"><i
+                            class="icon-trash icon-white"></i> <g:message code="crmTag.button.delete.label"
+                                                                          default="Delete"/></a>
+                </div>
             </div>
         </g:form>
     </crm:hasPermission>
