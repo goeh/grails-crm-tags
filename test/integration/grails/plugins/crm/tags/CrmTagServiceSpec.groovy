@@ -145,4 +145,30 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         m.classTags.size() == 2
         m.classTags.sort() == ["bar", "foo"]
     }
+
+    def "test setTagValue chaining"() {
+        given:
+        crmTagService.createTag(name: TestEntity.name, multiple: true)
+        def m = new TestEntity(name: "C").save(failOnError: true)
+
+        expect:
+        m.getClassTags().isEmpty()
+
+        when:
+        m.setTagValue("foo").setTagValue("bar")
+
+        then:
+        m.getClassTags().size() == 2
+        m.isTagged("foo")
+        m.isTagged("bar")
+
+        when:
+        m.deleteTagValue("foo").setTagValue("42")
+
+        then:
+        m.getClassTags().size() == 2
+        !m.isTagged("foo")
+        m.isTagged("bar")
+        m.isTagged("42")
+    }
 }
