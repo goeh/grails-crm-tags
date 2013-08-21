@@ -79,6 +79,15 @@
                 }, "json");
             });
 
+            // Slide down tag panel when mouse is over.
+            $("#tags").hoverIntent(function(event) {
+              $("form", $(this)).slideDown('fast', function() {
+                $("input:visible:first", $(this)).focus();
+              });
+            }, function(event) {
+              $("form", $(this)).slideUp('fast');
+            });
+
             refreshTags(null);
         });
     </r:script>
