@@ -171,4 +171,17 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         m.isTagged("bar")
         m.isTagged("42")
     }
+
+    def "list distinct values"() {
+        when:
+        crmTagService.createTag(name: TestEntity.name, multiple: true)
+        new TestEntity(name: "A").save(failOnError: true).setTagValue("blue")
+        new TestEntity(name: "B").save(failOnError: true).setTagValue("red").setTagValue("green")
+        new TestEntity(name: "C").save(failOnError: true).setTagValue("blue").setTagValue("green").setTagValue("gray")
+
+        then:
+        crmTagService.listDistinctValue(TestEntity.name).size() == 4
+        crmTagService.listDistinctValue(TestEntity.name, 'b').size() == 1
+        crmTagService.listDistinctValue(TestEntity.name, 'g').size() == 2
+    }
 }

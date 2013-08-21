@@ -17,6 +17,7 @@
 package grails.plugins.crm.tags
 
 import grails.events.Listener
+import grails.plugins.crm.core.SearchUtils
 import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.core.CrmException
 import grails.plugins.crm.core.PagedResultList
@@ -246,5 +247,20 @@ class CrmTagService {
     def list(Map query, Map params) {
         def domainClass = crmCoreService.getDomainClass(query.entity)
         findAllByTag(domainClass, query.value)
+    }
+
+    List<String> listDistinctValue(String className, String q = null, Map params = [:]) {
+        CrmTagLink.createCriteria().list(params) {
+            projections {
+                distinct('value')
+            }
+            tag {
+                eq('tenantId', TenantUtils.tenant)
+                eq('name', className)
+            }
+            if (q) {
+                ilike('value', SearchUtils.wildcard(q))
+            }
+        }.sort()
     }
 }
