@@ -21,9 +21,9 @@ class CrmTagsGrailsPlugin {
     // the plugin dependency group
     def groupId = "grails.crm"
     // the plugin version
-    def version = "1.1.0"
+    def version = "1.2.0"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "2.0 > *"
+    def grailsVersion = "2.2 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
     def loadAfter = ['crmCore']
@@ -33,7 +33,7 @@ class CrmTagsGrailsPlugin {
             "grails-app/domain/grails/plugins/crm/tags/TestEntity.groovy"
     ]
 
-    def title = "Grails CRM Tags"
+    def title = "Grails CRM Tagging Support"
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
