@@ -290,7 +290,7 @@ class CrmTagService {
                             tagged.addAll(tmp)
                         }
                     } else {
-                        tagged = [0L] as Set
+                        tagged.clear()
                         break
                     }
                 }
