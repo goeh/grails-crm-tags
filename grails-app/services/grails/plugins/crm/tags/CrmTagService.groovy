@@ -206,12 +206,17 @@ class CrmTagService {
     }
 
     def findAllByTag(Class clazz, Object[] args) {
-        def tagName = args[0]
+        def tagName
         def tagValue
-        if (args.size() > 1) {
-            tagValue = args[1]
+        if (args) {
+            if (args.size() > 1) {
+                tagName = args[0]
+                tagValue = args[1]
+            } else {
+                tagName = clazz.name
+                tagValue = args[0]
+            }
         } else {
-            tagValue = args[0]
             tagName = clazz.name
         }
         def paginateParams = [offset: 0, max: 100000]
@@ -244,29 +249,58 @@ class CrmTagService {
         return result
     }
 
-    List<Long> findAllIdByTag(Class clazz, Object[] args) {
-        def tagName = args[0]
+    /**
+     * Return all primary keys for a domain class that are tagged with one or more specified tags.
+     * "tag1,tag2" means the domain instance must be tagged with either tag1 OR tag2.
+     * "tag1&amp;tag2" means the domain instance must be tagged with both tag1 AND tag2.
+     *
+     * @param clazz domain class to query
+     * @param args tag values
+     * @return Set of matching primary keys
+     */
+    Set<Long> findAllIdByTag(Class clazz, Object[] args) {
+        def tagName
         def tagValue
-        if (args.size() > 1) {
-            tagValue = args[1]
+        if (args) {
+            if (args.size() > 1) {
+                tagName = args[0]
+                tagValue = args[1]
+            } else {
+                tagName = clazz.name
+                tagValue = args[0]
+            }
         } else {
-            tagValue = args[0]
             tagName = clazz.name
         }
-        if (tagValue) {
-            tagValue = tagValue.toString().split(',').collect { it.trim().toLowerCase() }
-        }
-        def tenant = TenantUtils.getTenant()
-        final CrmTag tag = CrmTag.findByNameAndTenantId(tagName.toString(), tenant, [cache: true])
-        final List<Long> result = []
+        final CrmTag tag = CrmTag.findByNameAndTenantId(tagName.toString(), TenantUtils.getTenant(), [cache: true])
+        Set<Long> tagged = [] as Set
         if (tag) {
             final String domainName = GrailsNameUtils.getPropertyName(clazz)
             final int index = domainName.length() + 1
-            final String tagValueAddOn = tagValue ? "and lower(value) in (:value)" : ""
-            return clazz.executeQuery("select ref from CrmTagLink where tag = :tag and ref like '${domainName}@%' $tagValueAddOn",
-                    [tag: tag, value: tagValue]).collect {Long.valueOf(it.substring(index))}
+            if (tagValue) {
+                final List<String> allTags = tagValue.toString().split('&').toList().findAll { it.trim() }
+                for (int i = 0; i < allTags.size(); i++) {
+                    tagValue = allTags[i].split(',').collect { it.trim().toLowerCase() }
+                    List<Long> tmp = clazz.executeQuery("select ref from CrmTagLink where tag = :tag and ref like '${domainName}@%' and lower(value) in (:value)",
+                            [tag: tag, value: tagValue]).collect { Long.valueOf(it.substring(index)) }
+                    if (tmp) {
+                        if (i) {
+                            tagged.retainAll(tmp)
+                        } else {
+                            tagged.addAll(tmp)
+                        }
+                    } else {
+                        tagged = [0L] as Set
+                        break
+                    }
+                }
+            } else {
+                tagged.addAll(clazz.executeQuery("select ref from CrmTagLink where tag = :tag and ref like '${domainName}@%'",
+                        [tag: tag]).collect { Long.valueOf(it.substring(index)) })
+            }
         }
-        return result
+
+        return tagged
     }
 
     def list(Map query, Map params) {

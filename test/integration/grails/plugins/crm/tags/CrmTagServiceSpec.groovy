@@ -191,11 +191,15 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         new TestEntity(name: "A").save(failOnError: true).setTagValue("blue")
         new TestEntity(name: "B").save(failOnError: true).setTagValue("red").setTagValue("green")
         new TestEntity(name: "C").save(failOnError: true).setTagValue("blue").setTagValue("green").setTagValue("gray")
+        new TestEntity(name: "D").save(failOnError: true).setTagValue("yellow")
         def result = TestEntity.list()*.id.sort()
 
         then:
         crmTagService.findAllIdByTag(TestEntity, 'green').size() == 2
-        crmTagService.findAllIdByTag(TestEntity, 'green')[0] == result[1]
-        crmTagService.findAllIdByTag(TestEntity, 'green')[1] == result[2]
+        crmTagService.findAllIdByTag(TestEntity, 'green').find{it == result[1]}
+        crmTagService.findAllIdByTag(TestEntity, 'green').find{it == result[2]}
+        crmTagService.findAllIdByTag(TestEntity, 'blue,green').size() == 3
+        crmTagService.findAllIdByTag(TestEntity, 'blue&green').size() == 1
+        crmTagService.findAllIdByTag(TestEntity).size() == 4
     }
 }
