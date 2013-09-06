@@ -21,7 +21,7 @@ class CrmTagsGrailsPlugin {
     // the plugin dependency group
     def groupId = "grails.crm"
     // the plugin version
-    def version = "1.2.0"
+    def version = "1.2.1"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "2.2 > *"
     // the other plugins this plugin depends on
@@ -54,6 +54,7 @@ class CrmTagsGrailsPlugin {
             description "Tag objects with user-defined labels"
             permissions {
                 guest "crmTag:list"
+                partner "crmTag:list"
                 user "crmTag:*"
                 admin "crmTag:*"
             }

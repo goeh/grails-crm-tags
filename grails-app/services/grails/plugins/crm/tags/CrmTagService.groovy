@@ -234,12 +234,37 @@ class CrmTagService {
         if (tag) {
             def domainName = GrailsNameUtils.getPropertyName(clazz)
             def tagValueAddOn = tagValue ? "and lower(link.value) in (:value)" : ""
-            def totalCount = clazz.findAll("from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn)",
+            def totalCount = clazz.executeQuery("select count(id) from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn)",
                     [tenant: tenant, tag: tag, value: tagValue]).size()
             result = new PagedResultList(clazz.findAll("from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn) $order",
                     [tenant: tenant, tag: tag, value: tagValue], paginateParams), totalCount)
         } else {
             result = new PagedResultList([])
+        }
+        return result
+    }
+
+    List<Long> findAllIdByTag(Class clazz, Object[] args) {
+        def tagName = args[0]
+        def tagValue
+        if (args.size() > 1) {
+            tagValue = args[1]
+        } else {
+            tagValue = args[0]
+            tagName = clazz.name
+        }
+        if (tagValue) {
+            tagValue = tagValue.toString().split(',').collect { it.trim().toLowerCase() }
+        }
+        def tenant = TenantUtils.getTenant()
+        final CrmTag tag = CrmTag.findByNameAndTenantId(tagName.toString(), tenant, [cache: true])
+        final List<Long> result = []
+        if (tag) {
+            final String domainName = GrailsNameUtils.getPropertyName(clazz)
+            final int index = domainName.length() + 1
+            final String tagValueAddOn = tagValue ? "and lower(value) in (:value)" : ""
+            return clazz.executeQuery("select ref from CrmTagLink where tag = :tag and ref like '${domainName}@%' $tagValueAddOn",
+                    [tag: tag, value: tagValue]).collect {Long.valueOf(it.substring(index))}
         }
         return result
     }

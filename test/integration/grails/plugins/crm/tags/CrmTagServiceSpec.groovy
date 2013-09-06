@@ -184,4 +184,18 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         crmTagService.listDistinctValue(TestEntity.name, 'b').size() == 1
         crmTagService.listDistinctValue(TestEntity.name, 'g').size() == 2
     }
+
+    def "find primary keys"() {
+        when:
+        crmTagService.createTag(name: TestEntity.name, multiple: true)
+        new TestEntity(name: "A").save(failOnError: true).setTagValue("blue")
+        new TestEntity(name: "B").save(failOnError: true).setTagValue("red").setTagValue("green")
+        new TestEntity(name: "C").save(failOnError: true).setTagValue("blue").setTagValue("green").setTagValue("gray")
+        def result = TestEntity.list()*.id.sort()
+
+        then:
+        crmTagService.findAllIdByTag(TestEntity, 'green').size() == 2
+        crmTagService.findAllIdByTag(TestEntity, 'green')[0] == result[1]
+        crmTagService.findAllIdByTag(TestEntity, 'green')[1] == result[2]
+    }
 }
