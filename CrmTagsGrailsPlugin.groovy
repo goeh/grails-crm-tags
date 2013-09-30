@@ -18,21 +18,16 @@
 import org.codehaus.groovy.grails.commons.GrailsClassUtils
 
 class CrmTagsGrailsPlugin {
-    // the plugin dependency group
     def groupId = "grails.crm"
-    // the plugin version
-    def version = "1.2.2"
-    // the version or versions of Grails the plugin is designed for
+    def version = "1.2.3"
     def grailsVersion = "2.2 > *"
-    // the other plugins this plugin depends on
     def dependsOn = [:]
     def loadAfter = ['crmCore']
-    // resources that are excluded from plugin packaging
+    def observe = ["domain"]
     def pluginExcludes = [
             "grails-app/views/error.gsp",
             "grails-app/domain/grails/plugins/crm/tags/TestEntity.groovy"
     ]
-
     def title = "Grails CRM Tagging Support"
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
@@ -40,14 +35,8 @@ class CrmTagsGrailsPlugin {
     def description = "Provides tagging support for Grails CRM"
     def documentation = "http://grails.org/plugin/crm-tags"
     def license = "APACHE"
-
-    // Location of the plugin's issue tracker.
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-tags/issues"]
-
-    // Online location of the plugin's browseable source code.
     def scm = [url: "https://github.com/goeh/grails-crm-tags"]
-
-    def observe = ["domain"]
 
     def features = {
         crmTag {
