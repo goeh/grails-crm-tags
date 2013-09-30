@@ -22,12 +22,16 @@ import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.core.CrmException
 import grails.plugins.crm.core.PagedResultList
 import grails.util.GrailsNameUtils
+import groovy.transform.CompileStatic
+import org.springframework.cache.Cache
+import org.springframework.cache.CacheManager
 
 class CrmTagService {
 
-    static transactional = true
+    public static final String CRM_TAG_CACHE = "crmTagCache"
 
     def crmCoreService
+    CacheManager grailsCacheManager
 
     @Listener(namespace = "crmTenant", topic = "requestDelete")
     def requestDeleteTenant(event) {
@@ -44,6 +48,7 @@ class CrmTagService {
             deleteTag(t.name, tenant)
             n++
         }
+        clearCache()
         log.warn("Deleted $n tags in tenant $tenant")
     }
 
@@ -51,7 +56,6 @@ class CrmTagService {
         def tag = CrmTag.createCriteria().get {
             eq('name', params.name)
             eq('tenantId', params.tenantId ?: TenantUtils.getTenant())
-            cache true
         }
         if (!tag) {
             tag = new CrmTag(params).save(failOnError: true)
@@ -73,14 +77,16 @@ class CrmTagService {
         } else {
             throw new IllegalArgumentException("Tag not found: $name")
         }
+        clearCache()
     }
 
     def deleteLinks(item) {
         CrmTagLink.findAllByRef(crmCoreService.getReferenceIdentifier(item))*.delete()
+        clearCache()
     }
 
     def getTagOptions(String name) {
-        def tag = CrmTag.findByNameAndTenantId(name, TenantUtils.getTenant())
+        def tag = CrmTag.findByNameAndTenantId(name, TenantUtils.getTenant(), [cache: true])
         if (tag) {
             return tag.options.sort()
         } else {
@@ -127,6 +133,12 @@ class CrmTagService {
         }
         link.value = tagValue
         link.save(failOnError: true)
+        clearCache()
+    }
+
+    @CompileStatic
+    private String getCacheKey(final String reference, final String tagName) {
+        "$reference[$tagName]".toString()
     }
 
     def getTagValue(Object instance, String tagName) {
@@ -134,26 +146,40 @@ class CrmTagService {
         if (tagName == null) {
             tagName = className
         }
-        if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
-        def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
-        if (!tag) return null
         def ref = crmCoreService.getReferenceIdentifier(instance)
-        def links = CrmTagLink.createCriteria().list {
-            eq('tag', tag)
-            eq('ref', ref)
+        def cacheKey = getCacheKey(ref, tagName)
+        Cache cache = grailsCacheManager.getCache(CRM_TAG_CACHE)
+        def result = cache.get(cacheKey)
+        if (result != null) {
+            return result.get()
+        }
+        if (instance.ident() == null) throw new CrmException("tag.reference.not.saved.error", [instance])
+        def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
+        def tag = CrmTag.findByNameAndTenantId(tagName, tenant, [cache: true])
+        if (!tag) {
+            cache.put(cacheKey, null)
+            return null
         }
         if (tag.multiple) {
-            return links*.value
-        } else if (links) {
-            return links.iterator().next().value
+            result = CrmTagLink.createCriteria().list {
+                projections {
+                    property "value"
+                }
+                eq('tag', tag)
+                eq('ref', ref)
+            }
+            cache.put(cacheKey, result)
+        } else {
+            result = CrmTagLink.findByTagAndRef(tag, ref, [cache: true])?.value
+            cache.put(cacheKey, result)
         }
-        return null
+        return result
     }
 
-    boolean isTagged(Object instance, String tagName) {
-        def className = instance.class.name
-        def result = getTagValue(instance, className)
+    @CompileStatic
+    boolean isTagged(final Object instance, String tagName) {
+        final String className = instance.class.name
+        final Object result = getTagValue(instance, className)
         return (result instanceof Collection) ? result.contains(tagName) : (result == tagName)
     }
 
@@ -172,6 +198,7 @@ class CrmTagService {
             rval << link.value
             link.delete(flush: true)
         }
+        grailsCacheManager.getCache(CRM_TAG_CACHE).evict(getCacheKey(ref, tagName))
         return rval
     }
 
@@ -202,6 +229,7 @@ class CrmTagService {
             rval << link.value
             link.delete(flush: true)
         }
+        grailsCacheManager.getCache(CRM_TAG_CACHE).evict(getCacheKey(ref, tagName))
         return rval
     }
 
@@ -321,5 +349,10 @@ class CrmTagService {
                 ilike('value', SearchUtils.wildcard(q))
             }
         }.sort()
+    }
+
+    @CompileStatic
+    void clearCache() {
+        grailsCacheManager.getCache(CRM_TAG_CACHE).clear()
     }
 }
