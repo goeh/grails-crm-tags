@@ -44,10 +44,7 @@ class CrmTagLink {
     def beforeInsert() {
         if (!tag.multiple) {
             withNewSession {
-                def count = CrmTagLink.createCriteria().count {
-                    eq('ref', ref)
-                    eq('tag', tag)
-                }
+                int count = CrmTagLink.countByTagAndRef(tag, ref)
                 if (count > 0) {
                     throw new IllegalArgumentException("[$tag] does not allow multiple values")
                 }
@@ -55,6 +52,7 @@ class CrmTagLink {
         }
     }
 
+    @Override
     String toString() {
         value.toString()
     }
