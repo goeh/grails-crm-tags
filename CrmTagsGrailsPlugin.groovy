@@ -28,11 +28,11 @@ class CrmTagsGrailsPlugin {
             "grails-app/views/error.gsp",
             "grails-app/domain/grails/plugins/crm/tags/TestEntity.groovy"
     ]
-    def title = "Grails CRM Tagging Support"
+    def title = "GR8 CRM Tagging Support"
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
-    def description = "Provides tagging support for Grails CRM"
+    def description = "Provides tagging support for GR8 CRM"
     def documentation = "http://grails.org/plugin/crm-tags"
     def license = "APACHE"
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-tags/issues"]
