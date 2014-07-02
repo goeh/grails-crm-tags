@@ -42,6 +42,7 @@ class CrmTagController {
             eq('ref', ref)
             cache true
         }
+        WebUtils.shortCache(response)
         render result as JSON
     }
 

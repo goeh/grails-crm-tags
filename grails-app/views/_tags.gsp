@@ -1,8 +1,13 @@
 <g:content tag="head">
     <r:require module="autocomplete"/>
     <r:script>
-        function refreshTags(newValue) {
-            $.get("${createLink(controller: 'crmTag', action: 'list', params: [id: bean.ident(), entity: bean.class.name])}", function(data) {
+        function refreshTags(newValue, cache) {
+            $.ajax({
+            url: "${createLink(controller: 'crmTag', action: 'list')}",
+            data: {id: <%=bean.ident()%>, entity: "${bean.class.name}"},
+            dataType: "json",
+            cache: cache,
+            success: function(data) {
                 var html = "";
                 for (i = 0; i < data.length; i++) {
                     var cls = (newValue != null && jQuery.inArray(data[i], newValue) != -1) ? ' pulse' : '';
@@ -23,7 +28,7 @@
                             inputValue += value;
                             input.val(inputValue);
                         }).addClass("clickable");
-            }, "json");
+            }});
         }
 
         jQuery(document).ready(function() {
@@ -42,7 +47,7 @@
                 event.stopPropagation();
                 $.post("${createLink(controller: 'crmTag', action: 'save')}", form.serialize(), function(data) {
                     $("input[name='value']", form).val("");
-                    refreshTags(data.value);
+                    refreshTags(data.value, false);
                 }, "json");
                 return false;
             });
@@ -56,7 +61,7 @@
                 var form = $("#tags form");
                 var query = form.serialize();
                 $.post("${createLink(controller: 'crmTag', action: 'find')}", query, function(data) {
-                    window.location = "${select.createLink(action: 'list')}" + data.selection;
+                    window.location.href = "${select.createLink(action: 'list')}" + data.selection;
                 });
             });
             // Add an AJAX delete request to the delete button/icon.
@@ -75,7 +80,7 @@
                         }
                     });
                     $("input[name='value']", form).val("");
-                    setTimeout("refreshTags(null)", 2000);
+                    setTimeout("refreshTags(null, false)", 2000);
                 }, "json");
             });
 
@@ -88,7 +93,7 @@
               $("form", $(this)).slideUp('fast');
             });
 
-            refreshTags(null);
+            refreshTags(null, navigator.appVersion.indexOf("MSIE") == -1); // Cache false for IE.
         });
     </r:script>
 </g:content>
