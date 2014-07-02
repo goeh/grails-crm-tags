@@ -19,7 +19,7 @@ import org.codehaus.groovy.grails.commons.GrailsClassUtils
 
 class CrmTagsGrailsPlugin {
     def groupId = "grails.crm"
-    def version = "1.2.3"
+    def version = "1.2.4"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore']
@@ -60,6 +60,23 @@ class CrmTagsGrailsPlugin {
                 addDomainMethods(domainClass.clazz.metaClass, crmTagService)
             }
         }
+    }
+
+    def doWithApplicationContext = { applicationContext ->
+        // crm.tags.crmContact.show.sidebar = true
+        def crmPluginService = applicationContext.getBean('crmPluginService')
+        def cfg = application.config.crm.tags
+        if(cfg) {
+            for(controller in cfg) {
+                for(view in controller) {
+                    for(location in view) {
+                        crmPluginService.registerView(controller, view, location, [id: 'tags', template: '/tags', plugin: 'crm-tags', model: []])
+                    }
+                }
+            }
+        }
+        //<g:render template="/tags" plugin="crm-tags" model="${[bean: crmContact]}"/>
+        //<g:render template="${view.template}" model="${view.model}" plugin="${view.plugin}"/>
     }
 
     def onChange = { event ->
