@@ -19,7 +19,7 @@ import org.codehaus.groovy.grails.commons.GrailsClassUtils
 
 class CrmTagsGrailsPlugin {
     def groupId = "grails.crm"
-    def version = "1.2.4"
+    def version = "1.2.5"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore']
@@ -45,7 +45,7 @@ class CrmTagsGrailsPlugin {
                 guest "crmTag:list"
                 partner "crmTag:list"
                 user "crmTag:*"
-                admin "crmTag:*"
+                admin "crmTag,crmTagAdmin:*"
             }
             required true
             hidden true
@@ -108,8 +108,11 @@ class CrmTagsGrailsPlugin {
             }
             return v
         }
-        mc.isTagged = { String tagName ->
-            crmTagService.isTagged(delegate, tagName)
+        mc.isTagged = { String tagName, String arg = null ->
+            if(arg) {
+                return crmTagService.isTagged(delegate, tagName, arg)
+            }
+            return crmTagService.isTagged(delegate, tagName)
         }
         mc.deleteTagValue = { Object[] args ->
             crmTagService.deleteTagValue(delegate, args)
