@@ -52,6 +52,7 @@ class CrmTagAdminController {
         }
         for (opt in remove) {
             crmTag.removeFromOptions(opt)
+            opt.delete()
         }
         map.each { opt, config ->
             def tagOption = crmTag.options?.find { it.optionsString == opt }
