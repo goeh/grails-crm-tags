@@ -1,0 +1,56 @@
+= GR8 CRM - Tags Plugin
+Göran Ehrsson <goran@technipelago.se>
+:toc:
+:numbered:
+:icons: font
+:imagesdir: ./images
+:source-highlighter: prettify
+:homepage: http://gr8crm.github.io
+:gr8crm: GR8 CRM
+:gr8source: https://github.com/goeh/grails-crm-tags
+:license: This plugin is licensed with http://www.apache.org/licenses/LICENSE-2.0.html[Apache License version 2.0]
+
+== Introduction
+
+{gr8crm} is a set of http://www.grails.org/[Grails Web Application Framework]
+plugins that makes it easy to develop web applications with CRM functionality.
+
+=== Customer relationship management
+Customer relationship management (CRM) is a system for managing a company’s interactions with current and future customers.
+It involves using technology to organize, automate and synchronize sales, marketing, customer service, and technical support.
+http://en.wikipedia.org/wiki/Customer_relationship_management[Wikipedia]
+
+The {gr8crm} "Ecosystem" currently contains over 40 Grails plugins. For a complete list of plugins see http://gr8crm.github.io.
+
+== CRM Tags Plugin
+
+The +crm-tags+ plugin provides both storage, service and user interface components for working with tags.
+
+
+=== Enable tagging support for a domain class
+To make a domain class "taggable" you add a static property +taggable+ on the class.
+
+[source,groovy]
+----
+class Person {
+  String name
+
+  static taggable = true
+}
+----
+
+== Services
+
+The +crm-tags+ plugin provides a service that you can use to interact with tags and tagged entities.
+
+=== CrmTagService
+
+== Configuration
+
+== License
+
+{license}
+
+== Source Code
+
+The source code for this plugin is available at {gr8source}

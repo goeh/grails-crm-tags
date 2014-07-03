@@ -1,0 +1,30 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.2'
+    }
+}
+
+apply plugin: 'org.asciidoctor.gradle.asciidoctor'
+
+def pluginDescriptor = projectDir.listFiles().find { it.name.endsWith('GrailsPlugin.groovy') }
+
+version = (pluginDescriptor.text =~ /def\s+version\s*=\s*"(.+)"/)[0][1]
+
+asciidoctor {
+    sourceDir = new File("src/docs")
+    outputDir = new File("target/docs")
+    options = [
+        eruby: 'erubis',
+        attributes: [
+            revnumber: project.version,
+            toc: '',
+            idprefix: '',
+            idseparator: '-',
+            'source-highlighter': 'prettify'
+        ]
+    ]
+}
