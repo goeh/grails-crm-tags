@@ -17,20 +17,51 @@
 package grails.plugins.crm.tags
 
 import grails.plugins.crm.core.CrmLookupEntity
+import grails.util.GrailsNameUtils
 
 class CrmTag extends CrmLookupEntity {
     CrmTag parent
     boolean mustMatch
     boolean multiple
-    static hasMany = [children: CrmTag, options: String]
+    static hasMany = [children: CrmTag, options: CrmTagOptions]
     static mappedBy = [children: 'parent']
     static constraints = {
         parent(nullable: true)
     }
+    static transients = ['propertyName', 'usage']
+
     boolean isValidOption(value) {
         if (mustMatch) {
-            return options?.contains(value.toString())
+            if(options) {
+                return (options*.optionsString).contains(value.toString())
+            }
+            return false
         }
         return true
+    }
+
+    transient String getPropertyName() {
+        GrailsNameUtils.getPropertyName(name)
+    }
+
+    transient int getUsage(Object value = null) {
+        CrmTagLink.createCriteria().count {
+            eq('tag', this)
+            if (value) {
+                eq('value', value.toString())
+            }
+            cache true
+        }
+    }
+
+    CrmTag addToOptions(String opt) {
+        addToOptions(new CrmTagOptions(opt))
+    }
+
+    void removeFromOptions(String opt) {
+        CrmTagOptions existing = options?.find { it.optionsString == opt }
+        if (existing) {
+            removeFromOptions(existing)
+        }
     }
 }

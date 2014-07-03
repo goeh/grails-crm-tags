@@ -8,13 +8,15 @@
             dataType: "json",
             cache: cache,
             success: function(data) {
+                var tags = data.tags;
                 var html = "";
-                for (i = 0; i < data.length; i++) {
-                    var cls = (newValue != null && jQuery.inArray(data[i], newValue) != -1) ? ' pulse' : '';
-                    html = html + (' <span class="label label-info' + cls + '">' + data[i] + '</span>');
+                for (i = 0; i < tags.length; i++) {
+                    var cls = (newValue != null && jQuery.inArray(tags[i], newValue) != -1) ? ' pulse' : '';
+                    html = html + (' <span class="label label-info' + cls + '">' + tags[i] + '</span>');
                 }
                 var container = $("#tags .tag-list")
                 container.html(html);
+                container.attr('title', data.description);
                 $("span", container).click(
                         function(event) {
                             var value = $(this).html();
@@ -35,6 +37,9 @@
 
             $("#tags input[name='value']").autocomplete("${createLink(controller: 'crmTag', action: 'autocomplete')}", {
                 remoteDataType: 'json',
+                useCache: false,
+                filter: false,
+                minChars: 1,
                 preventDefaultReturn: true,
                 selectFirst: true,
                 extraParams: {entity: "${bean.class.name}", id: "${bean.ident()}"}
@@ -85,12 +90,16 @@
             });
 
             // Slide down tag panel when mouse is over.
-            $("#tags").hoverIntent(function(event) {
-              $("form", $(this)).slideDown('fast', function() {
-                $("input:visible:first", $(this)).focus();
-              });
-            }, function(event) {
-              $("form", $(this)).slideUp('fast');
+            $("#tags").hoverIntent({
+                over: function(event) {
+                    $("form", $(this)).slideDown('fast', function() {
+                        $("input:visible:first", $(this)).focus();
+                    });
+                },
+                out: function(event) {
+                    $("form", $(this)).slideUp('fast');
+                },
+                timeout: 3000
             });
 
             refreshTags(null, navigator.appVersion.indexOf("MSIE") == -1); // Cache false for IE.

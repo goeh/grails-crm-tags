@@ -31,17 +31,20 @@ class CrmTagController {
     def list() {
         def tenant = TenantUtils.tenant
         def ref = GrailsNameUtils.getPropertyName(params.entity) + '@' + params.id
-        def result = CrmTagLink.createCriteria().list([sort: 'value', order: 'asc']) {
+        def tag = CrmTag.findByNameAndTenantId(params.entity, tenant, [cache: true])
+        if (!tag) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+            return
+        }
+        def tags = CrmTagLink.createCriteria().list([sort: 'value', order: 'asc']) {
             projections {
                 property('value')
             }
-            tag {
-                eq('tenantId', tenant)
-                eq('name', params.entity)
-            }
+            eq('tag', tag)
             eq('ref', ref)
             cache true
         }
+        def result = [name: tag.name, description: tag.description, tags: tags]
         WebUtils.shortCache(response)
         render result as JSON
     }
@@ -52,7 +55,7 @@ class CrmTagController {
             def clazz = grailsApplication.classLoader.loadClass(params.entity)
             def instance = clazz.get(params.id)
             if (instance) {
-                values = values.split(',').collect {it.trim()}
+                values = values.split(',').collect { it.trim() }
                 for (v in values) {
                     instance.setTagValue(params.entity, v)
                 }
@@ -72,7 +75,7 @@ class CrmTagController {
             def clazz = grailsApplication.classLoader.loadClass(params.entity)
             def instance = clazz.get(params.id)
             if (instance) {
-                values = values.split(',').collect {it.trim()}
+                values = values.split(',').collect { it.trim() }
                 for (v in values) {
                     instance.deleteTagValue(params.entity, v)
                 }
@@ -96,21 +99,37 @@ class CrmTagController {
 
     def autocomplete() {
         params.offset = params.offset ? params.int('offset') : 0
-        if(params.limit && !params.max) params.max = params.limit
+        if (params.limit && !params.max) params.max = params.limit
         params.max = Math.min(params.max ? params.int('max') : 25, 100)
         def tenant = TenantUtils.tenant
-        def result = CrmTagLink.createCriteria().list([offset: params.offset, max: params.max]) {
-            projections {
-                distinct('value')
+        def tag = CrmTag.findByNameAndTenantId(params.entity, tenant)
+        if (!tag) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+            return
+        }
+        def options = tag.options
+        def result
+        if (options) {
+            result = CrmTagOptions.createCriteria().list(offset: params.offset, max: params.max, sort: 'optionsString', order: 'asc') {
+                projections {
+                    property('optionsString')
+                }
+                eq('crmTag', tag)
+                if (params.q) {
+                    ilike('optionsString', this.wildcard(params.q))
+                }
             }
-            tag {
-                eq('tenantId', tenant)
-                eq('name', params.entity)
-            }
-            if (params.q) {
-                ilike('value', this.wildcard(params.q))
-            }
-        }.sort()
+        } else {
+            result = CrmTagLink.createCriteria().list(offset: params.offset, max: params.max) {
+                projections {
+                    distinct('value')
+                }
+                eq('tag', tag)
+                if (params.q) {
+                    ilike('value', this.wildcard(params.q))
+                }
+            }.sort()
+        }
         WebUtils.noCache(response)
         render result as JSON
     }

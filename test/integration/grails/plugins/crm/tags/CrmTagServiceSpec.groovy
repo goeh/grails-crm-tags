@@ -73,6 +73,14 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         TestEntity.findAllByTag("Foo", 42).size() == 0
     }
 
+    def "options are sorted"() {
+        when:
+        def tag = crmTagService.createTag(name: "SortedOptions", options: ['bronce', 'silver', 'gold', 'platina', 'aluminium'])
+
+        then:
+        tag.options.sort()*.toString() == ['aluminium', 'bronce', 'gold', 'platina', 'silver']
+    }
+
     def "valid tag options"() {
         given:
         crmTagService.createTag(name: "Score", description: "Score", mustMatch: true, options: ['1', '2', '3', '4', '5'])
@@ -94,6 +102,42 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         3     | "3"
         4     | "4"
         5     | "5"
+    }
+
+    def "parse tag option"() {
+        when:
+        def (opt, cfg) = crmTagService.parseTagOption("foo[icon=open,width=640, height=320]")
+
+        then:
+        opt == 'foo'
+        cfg.icon == 'open'
+        cfg.width == '640'
+        cfg.height == '320'
+
+        when:
+        (opt, cfg) = crmTagService.parseTagOption(" foo [icon=open ,width = 640, height=320 ] ")
+
+        then:
+        opt == 'foo'
+        cfg.icon == 'open'
+        cfg.width == '640'
+        cfg.height == '320'
+
+        when:
+        (opt, cfg) = crmTagService.parseTagOption("foo[ hello ]")
+
+        then:
+        opt == 'foo'
+        cfg.text == 'hello'
+    }
+
+    def "create tag with complex options"() {
+        when:
+        def tag = crmTagService.createTag(name: "Complex", options: ['bronce', 'silver', 'gold[icon=winner]'])
+
+        then:
+        tag.options.find{it.icon == 'winner'}.toString() == 'gold'
+        tag.options.find{it.toString() == 'silver'}.icon == null
     }
 
     def "invalid tag options"() {
@@ -196,10 +240,37 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
 
         then:
         crmTagService.findAllIdByTag(TestEntity, 'green').size() == 2
-        crmTagService.findAllIdByTag(TestEntity, 'green').find{it == result[1]}
-        crmTagService.findAllIdByTag(TestEntity, 'green').find{it == result[2]}
+        crmTagService.findAllIdByTag(TestEntity, 'green').find { it == result[1] }
+        crmTagService.findAllIdByTag(TestEntity, 'green').find { it == result[2] }
         crmTagService.findAllIdByTag(TestEntity, 'blue,green').size() == 3
         crmTagService.findAllIdByTag(TestEntity, 'blue&green').size() == 1
         crmTagService.findAllIdByTag(TestEntity).size() == 4
+    }
+
+    def "tags can have child tags"() {
+        given:
+        def tag = crmTagService.createTag(name: TestEntity.name, multiple: true)
+        crmTagService.createTag(parent: tag, name: "make", multiple: true)
+        crmTagService.createTag(parent: tag, name: "model", multiple: true)
+
+        when:
+        def car = new TestEntity(name: "I'm selling my old volvo")
+                .save(failOnError: true)
+                .setTagValue("make", "volvo")
+                .setTagValue("model", "xc90")
+
+        then:
+        car.isTagged('make', 'volvo')
+        car.isTagged('model', 'xc90')
+
+        !car.isTagged('model', 'volvo')
+        !car.isTagged('make', 'xc90')
+
+        when:
+        car.deleteTag('model')
+
+        then:
+        car.isTagged('make', 'volvo')
+        !car.isTagged('model', 'xc90')
     }
 }

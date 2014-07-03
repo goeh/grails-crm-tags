@@ -26,6 +26,8 @@ import groovy.transform.CompileStatic
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
 
+import java.util.regex.Pattern
+
 class CrmTagService {
 
     public static final String CRM_TAG_CACHE = "crmTagCache"
@@ -34,7 +36,7 @@ class CrmTagService {
     CacheManager grailsCacheManager
 
     @Listener(namespace = "crmTenant", topic = "requestDelete")
-    def requestDeleteTenant(event) {
+    Map requestDeleteTenant(event) {
         def tenant = event.id
         def count = CrmTag.countByTenantId(tenant)
         return count ? [namespace: "crmTags", topic: "deleteTenant"] : null
@@ -52,18 +54,30 @@ class CrmTagService {
         log.warn("Deleted $n tags in tenant $tenant")
     }
 
-    def createTag(params) {
+    CrmTag createTag(Map params) {
         def tag = CrmTag.createCriteria().get {
             eq('name', params.name)
             eq('tenantId', params.tenantId ?: TenantUtils.getTenant())
         }
         if (!tag) {
-            tag = new CrmTag(params).save(failOnError: true)
+            def options = params.remove('options')
+            try {
+                tag = new CrmTag(params)
+                for (opt in options) {
+                    def (o, config) = parseTagOption(opt)
+                    tag.addToOptions(optionsString: o, icon: config.icon, description: config.text)
+                }
+            } finally {
+                if (options) {
+                    params.options = options
+                }
+            }
+            tag.save(failOnError: true)
         }
         return tag
     }
 
-    def deleteTag(String name, Long tenantId = null) {
+    void deleteTag(String name, Long tenantId = null) {
         if (!tenantId) {
             tenantId = TenantUtils.getTenant()
         }
@@ -80,21 +94,65 @@ class CrmTagService {
         clearCache()
     }
 
-    def deleteLinks(item) {
+    void deleteLinks(item) {
         CrmTagLink.findAllByRef(crmCoreService.getReferenceIdentifier(item))*.delete()
         clearCache()
     }
 
-    def getTagOptions(String name) {
+    Collection<String> getTagOptions(String name) {
         def tag = CrmTag.findByNameAndTenantId(name, TenantUtils.getTenant(), [cache: true])
-        if (tag) {
-            return tag.options.sort()
-        } else {
+        if (!tag) {
             throw new IllegalArgumentException("Tag not found: $name")
+        }
+        tag.options ? tag.options*.toString() : Collections.EMPTY_LIST
+    }
+
+    void addTagOption(String name, String option, Long tenantId = null) {
+        if (!tenantId) {
+            tenantId = TenantUtils.getTenant()
+        }
+        def tag = CrmTag.createCriteria().get {
+            eq('name', name)
+            eq('tenantId', tenantId)
+        }
+        if (!tag) {
+            throw new IllegalArgumentException("Tag not found: $name")
+        }
+        def (opt, config) = parseTagOption(option)
+        if (!tag.options?.find { it.optionsString == opt }) {
+            tag.addToOptions(optionsString: opt, icon: config.icon, description: config.text)
         }
     }
 
-    def setTagValue(def instance, Object[] args) {
+    /**
+     * Parse a string with the format "tagname[option1=value,option2=value]" into a Map.
+     *
+     * @param s the string to parse
+     * @return a Tuple (pair) with the tag name and a Map of options
+     */
+    Tuple parseTagOption(String s) {
+        int idx = s.indexOf('[')
+        if (idx != -1) {
+            String opt = s.substring(0, idx).trim()
+            String config = s.substring(idx + 1, s.length() - 1).trim()
+            if(config.endsWith(']')) {
+                config = config[0..-2]
+            }
+            if (config.indexOf('=') != -1) {
+                Map<String, Object> params = config.split(',').inject([:]) { Map map, String v ->
+                    def (String left, String right) = v.split('=').toList()*.trim()
+                    map[left] = right
+                    map
+                }
+                return new Tuple(opt, params)
+            } else {
+                return new Tuple(opt, [text: config])
+            }
+        }
+        return new Tuple(s, Collections.EMPTY_MAP)
+    }
+
+    void setTagValue(def instance, Object[] args) {
         def className = instance.class.name
         def tagName = args[0]
         def tagValue
@@ -183,7 +241,13 @@ class CrmTagService {
         return (result instanceof Collection) ? result.contains(tagName) : (result == tagName)
     }
 
-    def deleteTag(Object instance, String tagName) {
+    @CompileStatic
+    boolean isTagged(final Object instance, String parentTagName, String tagName) {
+        final Object result = getTagValue(instance, parentTagName)
+        return (result instanceof Collection) ? result.contains(tagName) : (result == tagName)
+    }
+
+    Collection deleteTag(Object instance, String tagName) {
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
         def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
@@ -202,7 +266,7 @@ class CrmTagService {
         return rval
     }
 
-    def deleteTagValue(instance, Object[] args) {
+    Collection deleteTagValue(instance, Object[] args) {
         def className = instance.class.name
         def tagName = args[0]
         def tagValue
@@ -233,7 +297,7 @@ class CrmTagService {
         return rval
     }
 
-    def findAllByTag(Class clazz, Object[] args) {
+    PagedResultList findAllByTag(Class clazz, Object[] args) {
         def tagName
         def tagValue
         if (args) {
@@ -331,7 +395,13 @@ class CrmTagService {
         return tagged
     }
 
-    def list(Map query, Map params) {
+    def list(Map params = null) {
+        CrmTag.createCriteria().list(params) {
+            eq('tenantId', TenantUtils.tenant)
+        }
+    }
+
+    PagedResultList list(Map query, Map params) {
         def domainClass = crmCoreService.getDomainClass(query.entity)
         findAllByTag(domainClass, query.value)
     }
