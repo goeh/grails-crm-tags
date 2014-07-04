@@ -34,6 +34,12 @@ class CrmTagAdminController {
 
             crmTag.save(flush: true)
 
+            // Display "Tag foo updated" message.
+            final String propertyName = crmTag.propertyName
+            def typeLabel = message(code: 'crmTag.label', default: 'Tag')
+            def tagLabel = message(code: propertyName + '.label', default: propertyName)
+            flash.success = message('crmTag.updated.message', args: [typeLabel, tagLabel], default: '{0} {1} updated')
+
             redirect action: 'index', id: crmTag.propertyName
         } else {
             def allTags = crmTagService.list(params)
