@@ -14,9 +14,9 @@
                     var cls = (newValue != null && jQuery.inArray(tags[i], newValue) != -1) ? ' pulse' : '';
                     html = html + (' <span class="label label-info' + cls + '">' + tags[i] + '</span>');
                 }
+                $("#tags").attr('title', data.description);
                 var container = $("#tags .tag-list")
                 container.html(html);
-                container.attr('title', data.description);
                 $("span", container).click(
                         function(event) {
                             var value = $(this).html();
