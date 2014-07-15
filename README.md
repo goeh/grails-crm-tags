@@ -13,3 +13,7 @@ With CRM we mean features like:
 ## Tags Plugin
 
 The tags plugin provides functions to add tags to domain instances.
+
+### Documentation
+
+Complete documentation is located at [gr8crm.github.io](http://gr8crm.github.io/plugins/crm-tags/crm-tags.html)
