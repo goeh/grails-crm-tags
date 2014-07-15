@@ -26,8 +26,6 @@ import groovy.transform.CompileStatic
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
 
-import java.util.regex.Pattern
-
 class CrmTagService {
 
     public static final String CRM_TAG_CACHE = "crmTagCache"
@@ -94,8 +92,8 @@ class CrmTagService {
         clearCache()
     }
 
-    void deleteLinks(item) {
-        CrmTagLink.findAllByRef(crmCoreService.getReferenceIdentifier(item))*.delete()
+    void deleteLinks(reference) {
+        CrmTagLink.findAllByRef(crmCoreService.getReferenceIdentifier(reference))*.delete()
         clearCache()
     }
 
