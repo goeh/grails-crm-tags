@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Goran Ehrsson.
+ * Copyright (c) 2014 Goran Ehrsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,14 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * under the License.
  */
 
 import org.codehaus.groovy.grails.commons.GrailsClassUtils
 
 class CrmTagsGrailsPlugin {
-    def groupId = "grails.crm"
-    def version = "1.2.6"
+    def groupId = "gr8crm"
+    def version = "2.0.0"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore']
@@ -33,7 +32,7 @@ class CrmTagsGrailsPlugin {
     def authorEmail = "goran@technipelago.se"
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
     def description = "Provides tagging support for GR8 CRM"
-    def documentation = "http://grails.org/plugin/crm-tags"
+    def documentation = "http://gr8crm.github.io/plugins/crm-tags/crm-tags.html"
     def license = "APACHE"
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-tags/issues"]
     def scm = [url: "https://github.com/goeh/grails-crm-tags"]
