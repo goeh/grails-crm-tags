@@ -28,11 +28,11 @@ The {gr8crm} "Ecosystem" currently contains over 40 Grails plugins. For a comple
 
 == CRM Tags Plugin
 
-The +crm-tags+ plugin provides both storage, service and user interface components for working with tags.
+The `crm-tags` plugin provides both storage, service and user interface components for working with tags.
 
 
 === Enable tagging support for a domain class
-To make a domain class "taggable" you add a static property +taggable+ on the class.
+To make a domain class "taggable" you add a static property `taggable` on the class.
 
 [source,groovy]
 ----
@@ -45,15 +45,15 @@ class Person {
 
 == Services
 
-The +crm-tags+ plugin provides a service that you can use to interact with tags and tagged entities.
+The `crm-tags` plugin provides a service that you can use to interact with tags and tagged entities.
 
 === CrmTagService
 
-+CrmTag createTag(Map params)+
+`CrmTag createTag(Map params)`
 
 Create a new tag.
 
-+void deleteTag(String name, Long tenantId = null)+
+`void deleteTag(String name, Long tenantId = null)`
 
 Delete an existing tag.
 
@@ -62,31 +62,39 @@ Delete an existing tag.
 Deleting a tag definition will also delete all occurrences of this tag on domain instances.
 ====
 
-+void deleteLinks(reference)+
+`void deleteLinks(reference)`
 
-Delete all tags on the domain instance +reference+.
+Delete all tags on the domain instance `reference`.
 
-+void setTagValue(def instance, Object[] args)+
+`void setTagValue(def instance, Object[] args)`
 
 Set value of a tag associated with a domain instance.
 
-+def getTagValue(Object instance, String tagName)+
+`def getTagValue(Object instance, String tagName)`
 
 Get the value of a tag associated with a domain instance.
 
-+boolean isTagged(final Object instance, String tagName)+
+`boolean isTagged(final Object instance, String tagName)`
 
 Check if a domain instance has been tagged with a specific tag.
 
-+Collection deleteTag(Object instance, String tagName)+
+`Collection deleteTag(Object instance, String tagName)`
 
 Delete a tag associated with a domain instance.
 
-+PagedResultList findAllByTag(Class clazz, Object[] args)+
+`PagedResultList findAllByTag(Class clazz, Object[] args)`
 
 Find all domain instances with a specific tag.
 
-== Configuration
+== Code Examples
+
+Filter domain instances that are tagged with a specific value.
+
+[source,groovy]
+----
+List<Person> everyone = Person.findAllByTenantId(1L)
+List<Person> veryImportantPeople = everyone.findAll{it.isTagged('vip')}
+----
 
 == License
 
@@ -95,3 +103,9 @@ Find all domain instances with a specific tag.
 == Source Code
 
 The source code for this plugin is available at {gr8source}
+
+== Contributing
+
+Please report {gr8source}/issues[issues or suggestions].
+
+Want to improve the plugin: Fork the {gr8source}[repository] and send a pull request.
