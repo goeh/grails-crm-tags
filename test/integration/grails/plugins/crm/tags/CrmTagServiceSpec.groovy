@@ -178,6 +178,8 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         given:
         crmTagService.createTag(name: TestEntity.name, multiple: true)
         def m = new TestEntity(name: "A").save(failOnError: true)
+        new TestEntity(name: "B").save(failOnError: true)
+        new TestEntity(name: "C").save(failOnError: true)
 
         expect:
         m.getClassTags().isEmpty()
@@ -187,6 +189,7 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
 
         then:
         m.getClassTags().size() == 1
+        TestEntity.findAllByTag("foo").size() == 1
 
         when:
         m.setTagValue("bar")

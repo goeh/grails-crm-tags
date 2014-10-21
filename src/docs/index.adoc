@@ -96,6 +96,14 @@ List<Person> everyone = Person.findAllByTenantId(1L)
 List<Person> veryImportantPeople = everyone.findAll{it.isTagged('vip')}
 ----
 
+The code above is very inefficient because it queries all records from the database then check each one if it got the tag.
+In this case it's better to use the domain class method `findAllByTag` because it uses a more efficient SQL query.
+
+[source,groovy]
+----
+List<Person> veryImportantPeople = Person.findAllByTag('vip')
+----
+
 == License
 
 {license}
