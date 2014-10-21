@@ -29,6 +29,7 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         new TestEntity(name: "A").save(failOnError: true)
         new TestEntity(name: "B").save(failOnError: true)
         new TestEntity(name: "C").save(failOnError: true)
+        new TestEntity(name: "D").save(failOnError: true)
 
         when:
         def testEntity = TestEntity.findByName("B")
@@ -42,7 +43,19 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         CrmTagLink.list().iterator().next().value == "42"
 
         TestEntity.findAllByTag("Foo", 42).size() == 1
+        TestEntity.findAllByTag("Foo", 42).totalCount == 1
         TestEntity.findAllByTag("Foo", 24).size() == 0
+        TestEntity.findAllByTag("Foo", 24).totalCount == 0
+
+        when:
+        testEntity = TestEntity.findByName("D")
+        testEntity.setTagValue("Foo", 42)
+
+        then:
+        TestEntity.findAllByTag("Foo", 42).size() == 2
+        TestEntity.findAllByTag("Foo", 42).totalCount == 2
+        TestEntity.findAllByTag("Foo", 24).size() == 0
+        TestEntity.findAllByTag("Foo", 24).totalCount == 0
     }
 
     def "delete tag value"() {
@@ -136,8 +149,8 @@ class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
         def tag = crmTagService.createTag(name: "Complex", options: ['bronce', 'silver', 'gold[icon=winner]'])
 
         then:
-        tag.options.find{it.icon == 'winner'}.toString() == 'gold'
-        tag.options.find{it.toString() == 'silver'}.icon == null
+        tag.options.find { it.icon == 'winner' }.toString() == 'gold'
+        tag.options.find { it.toString() == 'silver' }.icon == null
     }
 
     def "invalid tag options"() {
