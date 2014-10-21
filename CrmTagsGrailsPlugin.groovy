@@ -18,7 +18,7 @@ import org.codehaus.groovy.grails.commons.GrailsClassUtils
 
 class CrmTagsGrailsPlugin {
     def groupId = ""
-    def version = "2.0.1-SNAPSHOT"
+    def version = "2.0.1"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore']
@@ -31,7 +31,7 @@ class CrmTagsGrailsPlugin {
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
-    def description = "Provides tagging support for GR8 CRM"
+    def description = "Provides tagging support for GR8 CRM applications"
     def documentation = "http://gr8crm.github.io/plugins/crm-tags/"
     def license = "APACHE"
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-tags/issues"]
