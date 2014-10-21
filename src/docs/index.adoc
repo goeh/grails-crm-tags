@@ -104,6 +104,8 @@ In this case it's better to use the domain class method `findAllByTag` because i
 List<Person> veryImportantPeople = Person.findAllByTag('vip')
 ----
 
+NOTE: findAllByTag() automatically applies a *tenant filter* to the query, so the query above will only find people in the current executing tenant.
+
 == License
 
 {license}
