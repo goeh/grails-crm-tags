@@ -20,6 +20,7 @@ import grails.plugins.crm.core.SearchUtils
 import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.core.CrmException
 import grails.plugins.crm.core.PagedResultList
+import grails.plugins.selection.Selectable
 import grails.util.GrailsNameUtils
 import groovy.transform.CompileStatic
 import org.springframework.cache.Cache
@@ -392,12 +393,14 @@ class CrmTagService {
         return tagged
     }
 
+    @Selectable
     def list(Map params = null) {
         CrmTag.createCriteria().list(params) {
             eq('tenantId', TenantUtils.tenant)
         }
     }
 
+    @Selectable
     PagedResultList list(Map query, Map params) {
         def domainClass = crmCoreService.getDomainClass(query.entity)
         findAllByTag(domainClass, query.value)
