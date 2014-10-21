@@ -16,4 +16,4 @@ The tags plugin provides functions to add tags to domain instances.
 
 ### Documentation
 
-Complete documentation is located at [gr8crm.github.io](http://gr8crm.github.io/plugins/crm-tags/crm-tags.html)
+Complete documentation is located at [gr8crm.github.io](http://gr8crm.github.io/plugins/crm-tags/)
