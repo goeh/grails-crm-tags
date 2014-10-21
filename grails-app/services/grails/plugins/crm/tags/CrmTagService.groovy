@@ -329,10 +329,10 @@ class CrmTagService {
         if (tag) {
             def domainName = GrailsNameUtils.getPropertyName(clazz)
             def tagValueAddOn = tagValue ? "and lower(link.value) in (:value)" : ""
-            def totalCount = clazz.executeQuery("select count(id) from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn)",
-                    [tenant: tenant, tag: tag, value: tagValue]).size()
+            def totalCount = clazz.executeQuery("select count(m.id) from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn)",
+                    [tenant: tenant, tag: tag, value: tagValue]).head()
             result = new PagedResultList(clazz.findAll("from ${clazz.name} m where m.tenantId = :tenant and exists (select link.id from CrmTagLink link where link.tag = :tag and link.ref = '${domainName}@'||m.id $tagValueAddOn) $order",
-                    [tenant: tenant, tag: tag, value: tagValue], paginateParams), totalCount)
+                    [tenant: tenant, tag: tag, value: tagValue], paginateParams), totalCount.intValue())
         } else {
             result = new PagedResultList([])
         }
