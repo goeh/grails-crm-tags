@@ -19,7 +19,7 @@ package grails.plugins.crm.tags
 
 import grails.plugins.crm.core.CrmException
 
-class CrmTagServiceSpec extends grails.plugin.spock.IntegrationSpec {
+class CrmTagServiceSpec extends grails.test.spock.IntegrationSpec {
 
     def crmTagService
 
