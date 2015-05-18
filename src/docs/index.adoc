@@ -108,6 +108,7 @@ NOTE: findAllByTag() automatically applies a *tenant filter* to the query, so th
 
 == Changes
 
+2.4.1:: The method `domainInstance.isTagged(String)` is now case insensitive
 2.4.0:: First version compatible with Grails 2.4.4.
 2.0.0:: First public release.
 

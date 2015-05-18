@@ -236,7 +236,15 @@ class CrmTagService {
     boolean isTagged(final Object instance, String tagName) {
         final String className = instance.class.name
         final Object result = getTagValue(instance, className)
-        return (result instanceof Collection) ? result.contains(tagName) : (result == tagName)
+        if(result instanceof Collection) {
+            for(value in result) {
+                if(tagName.equalsIgnoreCase(value.toString())) {
+                    return true
+                }
+            }
+            return false
+        }
+        return tagName.equalsIgnoreCase(result.toString())
     }
 
     @CompileStatic

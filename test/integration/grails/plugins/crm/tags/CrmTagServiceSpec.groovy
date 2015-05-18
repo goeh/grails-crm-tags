@@ -206,6 +206,25 @@ class CrmTagServiceSpec extends grails.test.spock.IntegrationSpec {
         m.classTags.sort() == ["bar", "foo"]
     }
 
+    def "domain instance is tagged"() {
+        given:
+        crmTagService.createTag(name: TestEntity.name, multiple: true)
+        def yes = new TestEntity(name: "YES").save(failOnError: true).setTagValue('hello')
+        def no = new TestEntity(name: "NO").save(failOnError: true)
+
+        expect:
+        yes.isTagged('hello')
+        yes.isTagged('Hello')
+        yes.isTagged('HELLO')
+
+        !yes.isTagged('foo')
+        !yes.isTagged('FOO')
+
+        !no.isTagged('hello')
+        !no.isTagged('Hello')
+        !no.isTagged('HELLO')
+    }
+
     def "test setTagValue chaining"() {
         given:
         crmTagService.createTag(name: TestEntity.name, multiple: true)
