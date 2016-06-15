@@ -105,7 +105,7 @@
     });
 </r:script>
 
-<div class="well sidebar-nav" id="tags">
+<div class="well well-small sidebar-nav" id="tags">
 
     <ul class="nav nav-list">
         <li class="nav-header"><i class="icon-tags"></i> <g:message code="crmTag.list.title" default="Tags"/></li>
@@ -117,7 +117,7 @@
             <div class="row-fluid">
                 <input type="hidden" name="entity" value="${bean.class.name}"/>
                 <input type="hidden" name="id" value="${bean.id}"/>
-                <input type="text" name="value" class="span10" style="margin-left:15px;" autocomplete="off"
+                <input type="text" name="value" class="span11" style="margin-left:15px;" autocomplete="off"
                        data-provide="typeahead"/>
 
                 <div style="margin-left:15px;">
