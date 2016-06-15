@@ -23,6 +23,7 @@ import grails.plugins.crm.core.PagedResultList
 import grails.plugins.selection.Selectable
 import grails.util.GrailsNameUtils
 import groovy.transform.CompileStatic
+import org.grails.plugin.platform.events.EventMessage
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
 
@@ -50,6 +51,18 @@ class CrmTagService {
         }
         clearCache()
         log.warn("Deleted $n tags in tenant $tenant")
+    }
+
+    @Listener(namespace = "*", topic = "deleted")
+    def cleanupTags(EventMessage<Map> event) {
+        Map data = event.getData()
+        if(data.id) {
+            def ref = "${event.namespace}@${data.id}".toString()
+            deleteLinks(ref)
+            if(log.isDebugEnabled()) {
+                log.debug "Deleted all tags for $ref"
+            }
+        }
     }
 
     CrmTag createTag(Map params) {
