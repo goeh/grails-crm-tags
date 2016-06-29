@@ -110,8 +110,12 @@ class CrmTagService {
         clearCache()
     }
 
+    private CrmTag getTagInstance(Object nameOrInstance, Long tenant) {
+        (nameOrInstance instanceof CrmTag) ? nameOrInstance : CrmTag.findByNameAndTenantId(nameOrInstance.toString(), tenant, [cache: true])
+    }
+
     Collection<String> getTagOptions(String name) {
-        def tag = CrmTag.findByNameAndTenantId(name, TenantUtils.getTenant(), [cache: true])
+        def tag = getTagInstance(name, TenantUtils.getTenant())
         if (!tag) {
             throw new IllegalArgumentException("Tag not found: $name")
         }
@@ -175,7 +179,7 @@ class CrmTagService {
         }
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
+        def tag = getTagInstance(tagName, tenant)
         if (!tag) {
             if (tagName == instance.class.name) {
                 tag = createTag([name: tagName, multiple: true])
@@ -224,7 +228,7 @@ class CrmTagService {
         }
         if (instance.ident() == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
-        def tag = CrmTag.findByNameAndTenantId(tagName, tenant, [cache: true])
+        def tag = getTagInstance(tagName, tenant)
         if (!tag) {
             cache.put(cacheKey, null)
             return null
@@ -269,7 +273,7 @@ class CrmTagService {
     Collection deleteTag(Object instance, String tagName) {
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
+        def tag = getTagInstance(tagName, tenant)
         if (!tag) throw new CrmException("tag.not.found.error", [tagName])
         def ref = crmCoreService.getReferenceIdentifier(instance)
         def rval = []
@@ -297,7 +301,7 @@ class CrmTagService {
         }
         if (instance.id == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
-        def tag = (tagName instanceof CrmTag) ? tagName : CrmTag.findByNameAndTenantId(tagName.toString(), tenant)
+        def tag = getTagInstance(tagName, tenant)
         if (!tag) throw new CrmException("tag.not.found.error", [tagName])
         def ref = crmCoreService.getReferenceIdentifier(instance)
         def rval = []
@@ -345,7 +349,7 @@ class CrmTagService {
             tagValue = tagValue.toString().split(',').collect { it.trim().toLowerCase() }
         }
         def tenant = TenantUtils.getTenant()
-        def tag = CrmTag.findByNameAndTenantId(tagName.toString(), tenant, [cache: true])
+        def tag = getTagInstance(tagName, tenant)
         def result
         if (tag) {
             def domainName = GrailsNameUtils.getPropertyName(clazz)
@@ -383,7 +387,7 @@ class CrmTagService {
         } else {
             tagName = clazz.name
         }
-        final CrmTag tag = CrmTag.findByNameAndTenantId(tagName.toString(), TenantUtils.getTenant(), [cache: true])
+        final CrmTag tag = getTagInstance(tagName, TenantUtils.tenant)
         Set<Long> tagged = [] as Set
         if (tag) {
             final String domainName = GrailsNameUtils.getPropertyName(clazz)
