@@ -17,6 +17,7 @@ package grails.plugins.crm.tags
 
 import grails.plugins.crm.core.CrmLookupEntity
 import grails.util.GrailsNameUtils
+import groovy.transform.CompileStatic
 
 class CrmTag extends CrmLookupEntity {
     CrmTag parent
@@ -29,6 +30,7 @@ class CrmTag extends CrmLookupEntity {
     }
     static transients = ['propertyName', 'usage']
 
+    @CompileStatic
     boolean isValidOption(value) {
         if (mustMatch) {
             if(options) {
@@ -39,6 +41,15 @@ class CrmTag extends CrmLookupEntity {
         return true
     }
 
+    @CompileStatic
+    boolean isDefinedOption(value) {
+        if(options) {
+            return (options*.optionsString).contains(value.toString())
+        }
+        return false
+    }
+
+    @CompileStatic
     transient String getPropertyName() {
         GrailsNameUtils.getPropertyName(name)
     }

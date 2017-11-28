@@ -10,8 +10,10 @@
             var tags = data.tags;
             var html = "";
             for (i = 0; i < tags.length; i++) {
-                var cls = (newValue != null && jQuery.inArray(tags[i], newValue) != -1) ? ' pulse' : '';
-                html = html + (' <span class="label label-info' + cls + '">' + tags[i] + '</span>');
+                var tag = tags[i];
+                var value = tag.value;
+                var cls = (newValue != null && jQuery.inArray(value, newValue) != -1) ? ' pulse' : '';
+                html = html + (' <span class="label label-' + (tag.defined ? 'success' : 'info') + cls + '">' + value + '</span>');
             }
             $("#tags").attr('title', data.description);
             var container = $("#tags .tag-list")
@@ -79,6 +81,7 @@
                     span.removeClass("pulse");
                     if (jQuery.inArray(value, deleted) != -1) {
                         span.removeClass("label-info");
+                        span.removeClass("label-success");
                         span.addClass("label-important");
                         span.addClass("pulse");
                     }
@@ -117,7 +120,7 @@
             <div class="row-fluid">
                 <input type="hidden" name="entity" value="${bean.class.name}"/>
                 <input type="hidden" name="id" value="${bean.id}"/>
-                <input type="text" name="value" class="span11" style="margin-left:15px;" autocomplete="off"
+                <input type="text" name="value" class="span11" style="margin-left:15px;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="off"
                        data-provide="typeahead"/>
 
                 <div style="margin-left:15px;">

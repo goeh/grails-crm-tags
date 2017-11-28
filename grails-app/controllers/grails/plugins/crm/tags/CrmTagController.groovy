@@ -36,12 +36,11 @@ class CrmTagController {
             return
         }
         def tags = CrmTagLink.createCriteria().list([sort: 'value', order: 'asc']) {
-            projections {
-                property('value')
-            }
             eq('tag', tag)
             eq('ref', ref)
             cache true
+        }.collect{
+            [value: it.value, defined: it.tag.isDefinedOption(it.value)]
         }
         def result = [name: tag.name, description: tag.description, tags: tags]
         WebUtils.shortCache(response)
