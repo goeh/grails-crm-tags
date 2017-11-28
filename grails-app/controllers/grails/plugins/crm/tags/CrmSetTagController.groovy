@@ -34,6 +34,7 @@ class CrmSetTagController {
             }
             flash.success = message(code: propertyName + '.selection.tag.success', args: [result.totalCount, message(code: propertyName + '.label'), tags.join(', ')])
         }
-        redirect controller: entityName, action: 'list', q: params.q
+        def redirectParams = params.subMap([grailsApplication.config.selection.uri.parameter ?: 'q'])
+        redirect controller: entityName, action: 'list', params: redirectParams
     }
 }
