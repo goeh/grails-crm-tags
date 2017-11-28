@@ -108,6 +108,7 @@ NOTE: findAllByTag() automatically applies a *tenant filter* to the query, so th
 
 == Changes
 
+2.4.3:: Pre-defined tags are now rendered with green (success) color
 2.4.2:: Tag values are now deleted when the owning domain instance is deleted
 2.4.1:: The method `domainInstance.isTagged(String)` is now case insensitive
 2.4.0:: First version compatible with Grails 2.4.4.
