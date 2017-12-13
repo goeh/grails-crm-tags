@@ -63,7 +63,6 @@ class CrmTagAdminController {
 
     private void bindOptions(CrmTag crmTag, String configString) {
         def map = parseOptionConfig(configString)
-        println "map=$map"
         def remove = []
         for (opt in crmTag.options) {
             if (!map.containsKey(opt.configuration.value)) {
