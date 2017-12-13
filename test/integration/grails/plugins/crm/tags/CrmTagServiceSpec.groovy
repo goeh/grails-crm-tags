@@ -119,34 +119,34 @@ class CrmTagServiceSpec extends grails.test.spock.IntegrationSpec {
 
     def "parse tag option"() {
         when:
-        def (opt, cfg) = crmTagService.parseTagOption("foo[icon=open,width=640, height=320]")
+        def cfg = CrmTagOptions.fromString("foo,icon=open,width=640, height=320").configuration
 
         then:
-        opt == 'foo'
+        cfg.value == 'foo'
         cfg.icon == 'open'
         cfg.width == '640'
         cfg.height == '320'
 
         when:
-        (opt, cfg) = crmTagService.parseTagOption(" foo [icon=open ,width = 640, height=320 ] ")
+        cfg = CrmTagOptions.fromString(" foo , icon=open ,width = 640, height=320 ").configuration
 
         then:
-        opt == 'foo'
+        cfg.value == 'foo'
         cfg.icon == 'open'
         cfg.width == '640'
         cfg.height == '320'
 
         when:
-        (opt, cfg) = crmTagService.parseTagOption("foo[ hello ]")
+        cfg = CrmTagOptions.fromString("foo, hello").configuration
 
         then:
-        opt == 'foo'
+        cfg.value == 'foo'
         cfg.text == 'hello'
     }
 
     def "create tag with complex options"() {
         when:
-        def tag = crmTagService.createTag(name: "Complex", options: ['bronce', 'silver', 'gold[icon=winner]'])
+        def tag = crmTagService.createTag(name: "Complex", options: ['bronce', 'silver', 'gold,icon=winner'])
 
         then:
         tag.options.find { it.icon == 'winner' }.toString() == 'gold'

@@ -28,13 +28,13 @@ class CrmTag extends CrmLookupEntity {
     static constraints = {
         parent(nullable: true)
     }
-    static transients = ['propertyName', 'usage']
+    static transients = ['propertyName', 'usage', 'parsedOptions']
 
     @CompileStatic
     boolean isValidOption(value) {
         if (mustMatch) {
             if(options) {
-                return (options*.optionsString).contains(value.toString())
+                return (options*.configuration.value).contains(value.toString())
             }
             return false
         }
@@ -44,9 +44,13 @@ class CrmTag extends CrmLookupEntity {
     @CompileStatic
     boolean isDefinedOption(value) {
         if(options) {
-            return (options*.optionsString).contains(value.toString())
+            return (options*.configuration.value).contains(value.toString())
         }
         return false
+    }
+
+    CrmTagOptions getOption(String name) {
+        options.find{it.configuration.value == name}
     }
 
     @CompileStatic
@@ -65,13 +69,23 @@ class CrmTag extends CrmLookupEntity {
     }
 
     CrmTag addToOptions(String opt) {
-        addToOptions(new CrmTagOptions(opt))
+        def instance = CrmTagOptions.fromString(opt)
+        instance.crmTag = this
+        addToOptions(instance)
     }
 
-    void removeFromOptions(String opt) {
-        CrmTagOptions existing = options?.find { it.optionsString == opt }
+    void removeFromOptions(String name) {
+        def existing = getOption(name)
         if (existing) {
             removeFromOptions(existing)
         }
     }
+
+    transient List<Map<String, Object>> getParsedOptions() {
+        if(options) {
+            return options.collect{it.getConfiguration()}
+        }
+        return Collections.emptyList()
+    }
+
 }

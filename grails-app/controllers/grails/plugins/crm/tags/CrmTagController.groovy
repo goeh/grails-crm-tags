@@ -17,20 +17,22 @@
 package grails.plugins.crm.tags
 
 import grails.converters.JSON
-import grails.util.GrailsNameUtils
 import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.core.WebUtils
+import grails.util.GrailsNameUtils
+
 import javax.servlet.http.HttpServletResponse
 
 class CrmTagController {
 
     def grailsApplication
     def selectionService
+    def crmTagService
 
-    def list() {
+    def list(String entity) {
         def tenant = TenantUtils.tenant
         def ref = GrailsNameUtils.getPropertyName(params.entity) + '@' + params.id
-        def tag = CrmTag.findByNameAndTenantId(params.entity, tenant, [cache: true])
+        def tag = crmTagService.getTagInstance(params.entity, tenant)
         if (!tag) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND)
             return
@@ -39,21 +41,32 @@ class CrmTagController {
             eq('tag', tag)
             eq('ref', ref)
             cache true
-        }.collect{
+        }.collect {
             [value: it.value, defined: it.tag.isDefinedOption(it.value)]
         }
-        def result = [name: tag.name, description: tag.description, tags: tags]
+
+        def options = crmTagService.getTagOptions(params.entity)
+        def existing = tags.collect{it.value}
+        for(opt in options) {
+            opt.checked = existing.contains(opt.value)
+        }
+        def result = [name: tag.name, description: tag.description, tags: tags, options: options]
         WebUtils.shortCache(response)
         render result as JSON
     }
 
     def save() {
-        def values = params.value
+        def values = params.list('option') ?: []
+        if(params.value) {
+            def tmp = new ArrayList(values.size() + 1)
+            tmp.addAll(values)
+            tmp.addAll(params.value.split(',').collect { it.trim() })
+            values = tmp
+        }
         if (values) {
             def clazz = grailsApplication.classLoader.loadClass(params.entity)
             def instance = clazz.get(params.id)
             if (instance) {
-                values = values.split(',').collect { it.trim() }
                 for (v in values) {
                     instance.setTagValue(params.entity, v)
                 }
@@ -100,36 +113,37 @@ class CrmTagController {
         if (params.limit && !params.max) params.max = params.limit
         params.max = Math.min(params.max ? params.int('max') : 25, 100)
         def tenant = TenantUtils.tenant
-        def tag = CrmTag.findByNameAndTenantId(params.entity, tenant)
+        def tag = crmTagService.getTagInstance(params.entity, tenant)
         if (!tag) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND)
             return
         }
-        def options = tag.options
-        def result
-        if (options) {
-            result = CrmTagOptions.createCriteria().list(offset: params.offset, max: params.max, sort: 'optionsString', order: 'asc') {
-                projections {
-                    property('optionsString')
-                }
-                eq('crmTag', tag)
-                if (params.q) {
-                    ilike('optionsString', this.wildcard(params.q))
-                }
+        def result = CrmTagLink.createCriteria().list(offset: params.offset, max: params.max) {
+            projections {
+                distinct('value')
             }
-        } else {
-            result = CrmTagLink.createCriteria().list(offset: params.offset, max: params.max) {
-                projections {
-                    distinct('value')
-                }
-                eq('tag', tag)
-                if (params.q) {
-                    ilike('value', this.wildcard(params.q))
-                }
-            }.sort()
+            eq('tag', tag)
+            if (params.q) {
+                ilike('value', this.wildcard(params.q))
+            }
+        } as Set<String>
+
+        def options = CrmTagOptions.createCriteria().list(offset: params.offset, max: params.max, sort: 'optionsString', order: 'asc') {
+            projections {
+                property('optionsString')
+            }
+            eq('crmTag', tag)
+            if (params.q) {
+                ilike('optionsString', this.wildcard(params.q))
+            }
         }
+
+        if (options) {
+            result.addAll(options.collect{crmTagService.parseTagOption(it).value})
+        }
+
         WebUtils.noCache(response)
-        render result as JSON
+        render result.sort() as JSON
     }
 
     private String wildcard(String q) {

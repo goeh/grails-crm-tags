@@ -23,7 +23,7 @@
 
             <div id="${tag.propertyName}" class="accordion-body collapse ${tag.propertyName == params.id ? 'in' : ''}">
                 <div class="accordion-inner">
-                    <g:form>
+                    <g:form action="save">
                         <input type="hidden" name="name" value="${tag.name}"/>
 
                         <div class="row-fluid">
@@ -51,19 +51,16 @@
                                             def config = tag.options?.inject(new StringBuilder()) {s, opt->
                                                 s << opt.toString()
                                                 if(opt.icon && opt.description) {
-                                                    s << '[icon='
+                                                    s << ',icon='
                                                     s << opt.icon
                                                     s << ',text='
                                                     s << opt.description
-                                                    s << ']'
                                                 } else if (opt.icon) {
-                                                    s << '[icon='
+                                                    s << ',icon='
                                                     s << opt.icon
-                                                    s << ']'
                                                 } else if (opt.description) {
-                                                    s << '['
+                                                    s << ','
                                                     s << opt.description
-                                                    s << ']'
                                                 }
                                                 s << '\n'
                                             }

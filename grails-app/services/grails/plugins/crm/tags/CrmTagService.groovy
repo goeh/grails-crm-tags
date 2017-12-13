@@ -16,13 +16,14 @@
 package grails.plugins.crm.tags
 
 import grails.events.Listener
-import grails.plugins.crm.core.SearchUtils
-import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.core.CrmException
 import grails.plugins.crm.core.PagedResultList
+import grails.plugins.crm.core.SearchUtils
+import grails.plugins.crm.core.TenantUtils
 import grails.plugins.selection.Selectable
 import grails.util.GrailsNameUtils
 import groovy.transform.CompileStatic
+import org.grails.databinding.SimpleMapDataBindingSource
 import org.grails.plugin.platform.events.EventMessage
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
@@ -32,6 +33,7 @@ class CrmTagService {
     public static final String CRM_TAG_CACHE = "crmTagCache"
 
     def crmCoreService
+    def grailsWebDataBinder
     CacheManager grailsCacheManager
 
     @Listener(namespace = "crmTenant", topic = "requestDelete")
@@ -56,10 +58,10 @@ class CrmTagService {
     @Listener(namespace = "*", topic = "deleted")
     def cleanupTags(EventMessage<Map> event) {
         Map data = event.getData()
-        if(data.id) {
+        if (data.id) {
             def ref = "${event.namespace}@${data.id}".toString()
             deleteLinks(ref)
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug "Deleted all tags for $ref"
             }
         }
@@ -71,17 +73,10 @@ class CrmTagService {
             eq('tenantId', params.tenantId ?: TenantUtils.getTenant())
         }
         if (!tag) {
-            def options = params.remove('options')
-            try {
-                tag = new CrmTag(params)
-                for (opt in options) {
-                    def (o, config) = parseTagOption(opt)
-                    tag.addToOptions(optionsString: o, icon: config.icon, description: config.text)
-                }
-            } finally {
-                if (options) {
-                    params.options = options
-                }
+            tag = new CrmTag()
+            grailsWebDataBinder.bind(tag, params as SimpleMapDataBindingSource, null, null, ['options'], null)
+            for (opt in params.options) {
+                tag.addToOptions(CrmTagOptions.fromString(opt))
             }
             tag.save(failOnError: true)
         }
@@ -110,19 +105,22 @@ class CrmTagService {
         clearCache()
     }
 
-    private CrmTag getTagInstance(Object nameOrInstance, Long tenant) {
+    protected CrmTag getTagInstance(Object nameOrInstance, Long tenant) {
         (nameOrInstance instanceof CrmTag) ? nameOrInstance : CrmTag.findByNameAndTenantId(nameOrInstance.toString(), tenant, [cache: true])
     }
 
-    Collection<String> getTagOptions(String name) {
+    Collection<Map<String, Object>> getTagOptions(String name) {
         def tag = getTagInstance(name, TenantUtils.getTenant())
         if (!tag) {
             throw new IllegalArgumentException("Tag not found: $name")
         }
-        tag.options ? tag.options*.toString() : Collections.EMPTY_LIST
+        if (tag?.options) {
+            return tag.getParsedOptions()
+        }
+        return Collections.EMPTY_LIST
     }
 
-    void addTagOption(String name, String option, Long tenantId = null) {
+    CrmTagOptions addTagOption(String name, String option, Long tenantId = null) {
         if (!tenantId) {
             tenantId = TenantUtils.getTenant()
         }
@@ -133,38 +131,13 @@ class CrmTagService {
         if (!tag) {
             throw new IllegalArgumentException("Tag not found: $name")
         }
-        def (opt, config) = parseTagOption(option)
-        if (!tag.options?.find { it.optionsString == opt }) {
-            tag.addToOptions(optionsString: opt, icon: config.icon, description: config.text)
+        def instance = tag.getOption(option)
+        if (!instance) {
+            instance = CrmTagOptions.fromString(option)
+            instance.crmTag = tag
+            tag.addToOptions(instance)
         }
-    }
-
-    /**
-     * Parse a string with the format "tagname[option1=value,option2=value]" into a Map.
-     *
-     * @param s the string to parse
-     * @return a Tuple (pair) with the tag name and a Map of options
-     */
-    Tuple parseTagOption(String s) {
-        int idx = s.indexOf('[')
-        if (idx != -1) {
-            String opt = s.substring(0, idx).trim()
-            String config = s.substring(idx + 1, s.length() - 1).trim()
-            if(config.endsWith(']')) {
-                config = config[0..-2]
-            }
-            if (config.indexOf('=') != -1) {
-                Map<String, Object> params = config.split(',').inject([:]) { Map map, String v ->
-                    def (String left, String right) = v.split('=').toList()*.trim()
-                    map[left] = right
-                    map
-                }
-                return new Tuple(opt, params)
-            } else {
-                return new Tuple(opt, [text: config])
-            }
-        }
-        return new Tuple(s, Collections.EMPTY_MAP)
+        return instance
     }
 
     void setTagValue(def instance, Object[] args) {
@@ -253,9 +226,9 @@ class CrmTagService {
     boolean isTagged(final Object instance, String tagName) {
         final String className = instance.class.name
         final Object result = getTagValue(instance, className)
-        if(result instanceof Collection) {
-            for(value in result) {
-                if(tagName.equalsIgnoreCase(value.toString())) {
+        if (result instanceof Collection) {
+            for (value in result) {
+                if (tagName.equalsIgnoreCase(value.toString())) {
                     return true
                 }
             }

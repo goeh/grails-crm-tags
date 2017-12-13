@@ -16,8 +16,12 @@
 
 package grails.plugins.crm.tags
 
+import groovy.transform.CompileStatic
+
 /**
- * Created by goran on 2014-07-03.
+ * This entity store available options for a tag. For example if the tag is "color"
+ * then it could have options like "red", "yellow" and "green".
+ * An option can also have a description to be rendered as a help text for the option.
  */
 class CrmTagOptions implements Comparable<CrmTagOptions> {
 
@@ -33,16 +37,11 @@ class CrmTagOptions implements Comparable<CrmTagOptions> {
 
     static belongsTo = [crmTag: CrmTag]
 
-    CrmTagOptions() {
-    }
-
-    CrmTagOptions(String arg) {
-        optionsString = arg
-    }
+    static transients = ['configuration']
 
     @Override
     String toString() {
-        optionsString.toString()
+        getConfiguration().value.toString()
     }
 
     @Override
@@ -69,5 +68,51 @@ class CrmTagOptions implements Comparable<CrmTagOptions> {
     @Override
     int compareTo(CrmTagOptions o) {
         optionsString.compareTo(o.optionsString)
+    }
+
+    /**
+     * Parse a string with the format "tagname,option1=value,option2=value" into a Map.
+     * The tag value is stored with key 'value'.
+     *
+     * @return a Map of options
+     */
+    @CompileStatic
+    transient Map<String, Object> getConfiguration() {
+        Map<String, Object> cfg = parseOption(optionsString)
+        cfg.icon = icon
+        cfg.text = description
+        return cfg
+    }
+
+    static Map<String, Object> parseOption(String s) {
+        final Map<String, Object> result = [:]
+        final StringTokenizer parts = new StringTokenizer(s, ',')
+
+        result.value = parts.nextToken().trim()
+
+        while (parts.hasMoreTokens()) {
+            String token = parts.nextToken()
+            List<String> tmp = token.split('=').toList()*.trim()
+            if (tmp.size() > 1) {
+                result[tmp[0]] = removeQuotes(tmp[1])
+            } else {
+                result.text = token.trim()
+                break
+            }
+        }
+        return result
+    }
+
+    @CompileStatic
+    static private String removeQuotes(String value) {
+        if ((value[0] == '\'' && value[-1] == '\'') || (value[0] == '"' && value[-1] == '"')) {
+            value = value.substring(1, value.length() - 2)
+        }
+        return value
+    }
+
+    static CrmTagOptions fromString(String s) {
+        def map = parseOption(s)
+        return new CrmTagOptions(optionsString: s, icon: map.icon, description: map.text)
     }
 }

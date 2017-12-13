@@ -16,9 +16,9 @@
                 html = html + (' <span class="label label-' + (tag.defined ? 'success' : 'info') + cls + '">' + value + '</span>');
             }
             $("#tags").attr('title', data.description);
-            var container = $("#tags .tag-list")
-            container.html(html);
-            $("span", container).click(
+            var $container = $("#tags .tag-list")
+            $container.html(html);
+            $("span", $container).click(
                     function(event) {
                         var value = $(this).html();
                         var input = $("#tags input[name=value]");
@@ -31,6 +31,24 @@
                         inputValue += value;
                         input.val(inputValue);
                     }).addClass("clickable");
+            if(data.options) {
+                var $opts = $('#tags .crm-tag-options');
+                var markup = '<div class="control-group">';
+                for (i = 0; i < data.options.length; i++) {
+                    var option = data.options[i];
+                    var tooltip = option.text;
+                    if(! tooltip) {
+                        tooltip = '';
+                    }
+                    var checked = '';
+                    if(option.checked) {
+                        checked = ' checked="checked"';
+                    }
+                    markup = markup + ('<label class="checkbox"><input type="checkbox" name="option" value="' + option.value + '"' + checked + ' title="' + tooltip + '"/> ' + option.value + '</label>\n');
+                }
+                markup = markup + '</div>';
+                $opts.html(markup);
+            }
         }});
     }
 
@@ -48,8 +66,6 @@
 
         $("#tags form").submit(function(event) {
             var form = $(this);
-            var input = $("input[name=value]", form)
-            var value = input.val();
             event.stopPropagation();
             $.post("${createLink(controller: 'crmTag', action: 'save')}", form.serialize(), function(data) {
                 $("input[name='value']", form).val("");
@@ -122,6 +138,8 @@
                 <input type="hidden" name="id" value="${bean.id}"/>
                 <input type="text" name="value" class="span11" style="margin-left:15px;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="off"
                        data-provide="typeahead"/>
+
+                <div class="crm-tag-options" style="padding-left:15px;padding-top:10px;padding-bottom: 15px;"></div>
 
                 <div style="margin-left:15px;">
                     <a href="#" class="btn btn-mini btn-primary tag-save"><i class="icon-ok icon-white"></i> <g:message

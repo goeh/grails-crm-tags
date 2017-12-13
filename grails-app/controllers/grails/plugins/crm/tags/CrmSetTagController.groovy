@@ -15,7 +15,7 @@ class CrmSetTagController {
 
         def tags = crmTagService.getTagOptions(entityName)
         def result = selectionService.select(uri, [max: 10])
-        return [entityName: entityName, selection: uri, tags: tags, result: result, totalCount: result.totalCount]
+        return [entityName: entityName, selection: uri, tags: tags.collect{it.first()}, result: result, totalCount: result.totalCount]
     }
 
     def save() {
