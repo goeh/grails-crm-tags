@@ -180,6 +180,9 @@ class CrmTagService {
         link.value = tagValue
         link.save(failOnError: true)
         clearCache()
+
+        def namespace = GrailsNameUtils.getPropertyName(className)
+        event(for: namespace, topic: "tagged", data: [id: instance.id, tenant: tenant, name: instance.toString(), tags: [tagValue]])
     }
 
     @CompileStatic
@@ -259,6 +262,10 @@ class CrmTagService {
             link.delete(flush: true)
         }
         grailsCacheManager.getCache(CRM_TAG_CACHE).evict(getCacheKey(ref, tagName))
+
+        def (namespace, id) = ref.split('@').toList()
+        event(for: namespace, topic: "untagged", data: [id: id, tenant: tenant, name: instance.toString(), tags: rval])
+
         return rval
     }
 
