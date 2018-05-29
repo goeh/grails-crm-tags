@@ -129,9 +129,6 @@ class CrmTagController {
         } as Set<String>
 
         def options = CrmTagOptions.createCriteria().list(offset: params.offset, max: params.max, sort: 'optionsString', order: 'asc') {
-            projections {
-                property('optionsString')
-            }
             eq('crmTag', tag)
             if (params.q) {
                 ilike('optionsString', this.wildcard(params.q))
@@ -139,7 +136,7 @@ class CrmTagController {
         }
 
         if (options) {
-            result.addAll(options.collect{crmTagService.parseTagOption(it).value})
+            result.addAll(options.collect{it.configuration.value})
         }
 
         WebUtils.noCache(response)
