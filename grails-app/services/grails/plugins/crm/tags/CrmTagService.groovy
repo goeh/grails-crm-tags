@@ -191,9 +191,8 @@ class CrmTagService {
     }
 
     def getTagValue(Object instance, String tagName) {
-        def className = instance.class.name
         if (tagName == null) {
-            tagName = className
+            tagName = instance.class.name
         }
         def ref = crmCoreService.getReferenceIdentifier(instance)
         def cacheKey = getCacheKey(ref, tagName)
