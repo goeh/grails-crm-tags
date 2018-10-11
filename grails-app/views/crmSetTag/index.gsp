@@ -59,8 +59,10 @@
 
 
     <div class="form-actions">
-        <crm:button action="save" label="Spara" icon="icon-ok icon-white" visual="success"
+        <crm:button action="save" label="Tagga" icon="icon-ok icon-white" visual="success"
                     confirm="${message(code: propertyName + '.selection.tag.confirm', args: [totalCount])}"/>
+        <crm:button action="remove" label="Ta bort" icon="icon-trash icon-white" visual="danger"
+                    confirm="${message(code: propertyName + '.selection.untag.confirm', args: [totalCount])}"/>
         <select:link controller="${propertyName}" action="list" selection="${selection}" class="btn">
             <i class="icon-remove"></i>
             <g:message code="${propertyName}.button.back.label" default="Back"/>

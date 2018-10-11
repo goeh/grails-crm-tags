@@ -15,7 +15,7 @@ class CrmSetTagController {
 
         def tags = crmTagService.getTagOptions(entityName)
         def result = selectionService.select(uri, [max: 10])
-        return [entityName: entityName, selection: uri, tags: tags.collect{it.first()}, result: result, totalCount: result.totalCount]
+        return [entityName: entityName, selection: uri, tags: tags, result: result, totalCount: result.totalCount]
     }
 
     def save() {
@@ -33,6 +33,26 @@ class CrmSetTagController {
                 }
             }
             flash.success = message(code: propertyName + '.selection.tag.success', args: [result.totalCount, message(code: propertyName + '.label'), tags.join(', ')])
+        }
+        def redirectParams = params.subMap([grailsApplication.config.selection.uri.parameter ?: 'q'])
+        redirect controller: entityName, action: 'list', params: redirectParams
+    }
+
+    def remove() {
+        def entityName = params.entityName
+        def propertyName = GrailsNameUtils.getPropertyName(entityName)
+        def uri = params.getSelectionURI()
+        def result = selectionService.select(uri, params)
+        def tags = params.tags
+        if (tags) {
+            tags = tags.split(',').findAll { it.trim() } // Convert to list with non-empty elements
+            log.debug "Removing tags $tags from ${result.totalCount} ${entityName}"
+            for (m in result) {
+                for (t in tags) {
+                    crmTagService.deleteTagValue(m, t)
+                }
+            }
+            flash.success = message(code: propertyName + '.selection.untag.success', args: [result.totalCount, message(code: propertyName + '.label'), tags.join(', ')])
         }
         def redirectParams = params.subMap([grailsApplication.config.selection.uri.parameter ?: 'q'])
         redirect controller: entityName, action: 'list', params: redirectParams
