@@ -33,6 +33,7 @@ class CrmTagService {
     public static final String CRM_TAG_CACHE = "crmTagCache"
 
     def crmCoreService
+    def grailsApplication
     def grailsWebDataBinder
     CacheManager grailsCacheManager
 
@@ -181,8 +182,14 @@ class CrmTagService {
         link.save(failOnError: true)
         clearCache()
 
-        def namespace = GrailsNameUtils.getPropertyName(className)
-        event(for: namespace, topic: "tagged", data: [id: instance.id, tenant: tenant, name: instance.toString(), tags: [tagValue]])
+        if(isEventsEnabled()) {
+            def namespace = GrailsNameUtils.getPropertyName(className)
+            event(for: namespace, topic: "tagged", data: [id: instance.id, tenant: tenant, name: instance.toString(), tags: [tagValue]])
+        }
+    }
+
+    private boolean isEventsEnabled() {
+        return grailsApplication.config.crm.tag.events != false
     }
 
     @CompileStatic
@@ -262,8 +269,10 @@ class CrmTagService {
         }
         grailsCacheManager.getCache(CRM_TAG_CACHE).evict(getCacheKey(ref, tagName))
 
-        def (namespace, id) = ref.split('@').toList()
-        event(for: namespace, topic: "untagged", data: [id: id, tenant: tenant, name: instance.toString(), tags: rval])
+        if(isEventsEnabled()) {
+            def (namespace, id) = ref.split('@').toList()
+            event(for: namespace, topic: "untagged", data: [id: id, tenant: tenant, name: instance.toString(), tags: rval])
+        }
 
         return rval
     }
