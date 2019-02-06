@@ -27,6 +27,7 @@ import org.grails.databinding.SimpleMapDataBindingSource
 import org.grails.plugin.platform.events.EventMessage
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
+import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil
 
 class CrmTagService {
 
@@ -198,7 +199,9 @@ class CrmTagService {
     }
 
     def getTagValue(Object instance, String tagName) {
-        if (tagName == null) {
+        instance = GrailsHibernateUtil.unwrapIfProxy(instance)
+        boolean multiple = tagName == null
+        if (multiple) {
             tagName = instance.class.name
         }
         def ref = crmCoreService.getReferenceIdentifier(instance)
@@ -211,11 +214,13 @@ class CrmTagService {
         if (instance.ident() == null) throw new CrmException("tag.reference.not.saved.error", [instance])
         def tenant = instance.hasProperty('tenantId') ? instance.tenantId : TenantUtils.getTenant()
         def tag = getTagInstance(tagName, tenant)
-        if (!tag) {
+        if (tag) {
+            multiple = tag.multiple
+        } else {
             cache.put(cacheKey, null)
-            return null
+            return multiple ? Collections.emptyList() : null
         }
-        if (tag.multiple) {
+        if (multiple) {
             result = CrmTagLink.createCriteria().list {
                 projections {
                     property "value"
