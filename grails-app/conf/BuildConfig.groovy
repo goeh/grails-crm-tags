@@ -36,7 +36,7 @@ grails.project.dependency.resolution = {
 
         compile ":cache:1.1.8"
         compile ":selection:0.9.8"
-        compile ":crm-core:2.4.4"
+        compile ":crm-core:2.4.5"
     }
 }
 
