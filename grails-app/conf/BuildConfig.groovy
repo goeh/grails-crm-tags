@@ -35,7 +35,7 @@ grails.project.dependency.resolution = {
         test(":code-coverage:2.0.3-3") { export = false }
 
         compile ":cache:1.1.8"
-        compile ":selection:0.9.8"
+        compile ":selection:0.9.9"
         compile ":crm-core:2.4.5"
     }
 }
