@@ -150,7 +150,7 @@ class CrmTagController {
         } else if (q[0] == '=') { // Exact match.
             return q[1..-1]
         } else { // Starts with is default.
-            return q + '%'
+            return '%' + q + '%'
         }
     }
 }

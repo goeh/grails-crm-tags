@@ -18,7 +18,7 @@ import org.codehaus.groovy.grails.commons.GrailsClassUtils
 
 class CrmTagsGrailsPlugin {
     def groupId = ""
-    def version = "2.4.4"
+    def version = "2.4.5"
     def grailsVersion = "2.4 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore']
