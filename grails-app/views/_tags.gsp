@@ -59,6 +59,7 @@
             useCache: false,
             filter: false,
             minChars: 1,
+            maxItemsToShow: 25,
             preventDefaultReturn: true,
             selectFirst: true,
             extraParams: {entity: "${bean.class.name}", id: "${bean.ident()}"}
